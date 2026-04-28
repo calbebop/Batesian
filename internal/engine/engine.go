@@ -135,6 +135,14 @@ func resolveExecutor(r *rules.Rule) (attackpkg.Executor, error) {
 		return mcpattack.NewHomoglyphToolExecutor(rc), nil
 	case "mcp-injection-params":
 		return mcpattack.NewInjectionParamsExecutor(rc), nil
+	case "a2a-security-headers":
+		return a2aattack.NewSecurityHeadersExecutor(rc), nil
+	case "mcp-security-headers":
+		return mcpattack.NewMCPSecurityHeadersExecutor(rc), nil
+	case "a2a-registry-poison":
+		return a2aattack.NewRegistryPoisonExecutor(rc), nil
+	case "a2a-circular-delegation":
+		return a2aattack.NewCircularDelegationExecutor(rc), nil
 	default:
 		return nil, fmt.Errorf("unknown attack type %q", r.Attack.Type)
 	}

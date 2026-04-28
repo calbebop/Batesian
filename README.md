@@ -25,60 +25,65 @@ Batesian is built for that second class. It does not replace observational scann
 
 ## What Batesian tests
 
-| ID | Attack Class | Protocol | Description |
-|---|---|---|---|
-| `a2a-push-ssrf-001` | Push Notification SSRF | A2A | Register a malicious callback URL; confirm the server makes an outbound request to an attacker-controlled host |
-| `a2a-extcard-unauth-001` | Extended Agent Card Disclosure | A2A | Probe `GET /extendedAgentCard` without authentication; detect privileged capability leakage |
-| `mcp-oauth-dcr-001` | OAuth DCR Scope Escalation | MCP | Abuse the dynamic client registration endpoint to request excessive scopes or hijack redirect URIs |
-| `a2a-jws-algconf-001` | JWS Algorithm Confusion | A2A | Send JWS assertions with `"alg":"none"` or RS256-to-HS256 confusion; detect missing signature validation |
-| `a2a-session-smuggle-001` | Agent Session Smuggling | A2A | Inject covert instructions into an ongoing A2A session by acting as a malicious peer agent |
-| `mcp-tool-poison-001` | Tool Poisoning / Rug Pull | MCP | Probe tool descriptions for embedded prompt injection and exfiltration instructions; detect mid-session description changes |
-| `a2a-task-idor-001` | Task IDOR | A2A | Test whether unauthenticated sessions can retrieve task history belonging to other sessions |
-| `mcp-resources-unauth-001` | Unauthenticated Resource Read | MCP | Access MCP resources without credentials; detect exposed secrets or configuration data |
-| `mcp-sampling-inject-001` | Sampling Injection | MCP | Detect server-initiated `sampling/createMessage` requests embedding prompt injection |
-| `a2a-context-orphan-001` | Cross-Session Context Injection | A2A | Test whether a new session can inject into or read from a context owned by a different session |
-| `mcp-token-replay-001` | Bearer Token Replay | MCP | Forge and replay OAuth tokens with incorrect audience claims; detect missing `aud` validation |
-| `a2a-json-rpc-fuzz-001` | JSON-RPC Mutation Fuzzing | A2A | Send malformed and boundary-case JSON-RPC payloads; detect stack traces and unhandled panics |
-| `a2a-peer-impersonation-001` | Peer Agent Impersonation | A2A | Forge JWTs claiming a trusted peer agent identity; detect missing token origin verification |
-| `a2a-delegation-escalation-001` | Delegation Escalation | A2A | Inject privileged metadata into `configuration` blocks; detect unauthorized capability acceptance |
-| `mcp-init-downgrade-001` | Protocol Version Downgrade | MCP | Negotiate `2024-11-05`; detect servers that disable security controls on older protocol versions |
-| `mcp-cors-wildcard-001` | CORS Wildcard with Credentials | MCP | Send a cross-origin preflight with `Origin: https://evil.batesian.invalid`; detect permissive CORS + ACAC headers |
-| `mcp-prompt-unauth-001` | Prompt Templates Without Auth | MCP | Access `prompts/list` and `prompts/get` without credentials; detect unauthenticated prompt exposure |
-| `a2a-wellknown-hostinject-001` | Agent Card Host Header Injection | A2A | Inject `Host`, `X-Forwarded-Host`; detect reflection of attacker-controlled domains in the Agent Card |
-| `a2a-artifact-tamper-001` | Task Artifact Tampering | A2A | Re-submit a completed task with the same ID and different content; detect missing task immutability enforcement |
-| `a2a-skill-poison-001` | AgentCard Skill Injection | A2A | Scan skill descriptions and examples for prompt injection patterns using heuristic scoring |
-| `a2a-url-mismatch-001` | Agent Card URL Mismatch | A2A | Detect Agent Cards whose `url` field points to a different domain than the card's serving host |
-| `mcp-context-flood-001` | Context Window Flooding | MCP | Submit 1MB and 5MB tool call arguments; detect missing payload size limits |
-| `mcp-tool-namespace-001` | Tool Namespace Collision | MCP | Connect twice with independent sessions; detect tool description changes between sessions (rug pull precondition) |
-| `mcp-sse-hijack-001` | Unauthenticated SSE Stream | MCP | Probe MCP SSE endpoints without credentials; detect streams that accept connections without authentication |
-| `a2a-tls-downgrade-001` | TLS Downgrade | A2A | Probe A2A card and RPC endpoints over plain HTTP; detect missing HTTPS enforcement |
-| `mcp-init-instructions-inject-001` | Server Instructions Injection | MCP | Score `serverInfo.instructions` from the MCP initialize response for prompt injection patterns |
-| `a2a-capability-inflation-001` | Capability Inflation | A2A | Send `tasks/send` with undeclared elevated permissions in `configuration`; detect silent acceptance |
-| `mcp-ratelimit-absent-001` | Missing Rate Limiting | MCP | Send a 25-request burst; detect servers with no HTTP 429 or throttle response |
-| `mcp-homoglyph-tool-001` | Tool Name Homoglyph | MCP | Call `tools/call` with Cyrillic homoglyph substitutions in the tool name; detect missing identity normalization |
-| `mcp-injection-params-001` | Tool Parameter Injection | MCP | Inject SQL, command, path traversal, and XSS payloads as tool arguments; detect error leakage or command execution |
+### A2A (Agent-to-Agent)
+
+| Rule ID | Attack | What it confirms |
+|---|---|---|
+| `a2a-push-ssrf-001` | Push Notification SSRF | Server makes outbound HTTP request to an attacker-controlled callback URL |
+| `a2a-extcard-unauth-001` | Extended Agent Card Disclosure | Privileged capabilities leak from `GET /extendedAgentCard` without authentication |
+| `a2a-jws-algconf-001` | JWS Algorithm Confusion | Server accepts JWS with `"alg":"none"` or RS256-to-HS256 downgrade |
+| `a2a-session-smuggle-001` | Agent Session Smuggling | Covert instructions injected into a session by a malicious peer agent |
+| `a2a-task-idor-001` | Task IDOR | Unauthenticated session retrieves task history belonging to another session |
+| `a2a-context-orphan-001` | Cross-Session Context Injection | New session reads or injects into a context owned by a different session |
+| `a2a-json-rpc-fuzz-001` | JSON-RPC Mutation Fuzzing | Malformed payloads produce stack traces or unhandled panics |
+| `a2a-peer-impersonation-001` | Peer Agent Impersonation | Forged JWT claiming a trusted peer identity accepted without origin verification |
+| `a2a-delegation-escalation-001` | Delegation Escalation | Privileged metadata injected in `configuration` blocks accepted without validation |
+| `a2a-wellknown-hostinject-001` | Agent Card Host Header Injection | Attacker-controlled domain reflected in Agent Card via `Host` / `X-Forwarded-Host` |
+| `a2a-artifact-tamper-001` | Task Artifact Tampering | Completed task re-submitted with different content; server accepts without immutability check |
+| `a2a-skill-poison-001` | Skill Description Injection | Agent Card skill descriptions or examples contain prompt injection patterns |
+| `a2a-url-mismatch-001` | Agent Card URL Mismatch | Agent Card `url` field points to a different domain than the card's serving host |
+| `a2a-tls-downgrade-001` | TLS Downgrade | Agent Card and RPC endpoints respond over plain HTTP without HTTPS redirect |
+| `a2a-capability-inflation-001` | Capability Inflation | `tasks/send` with undeclared elevated permissions accepted without a validation error |
+| `a2a-security-headers-001` | Missing Security Headers | A2A endpoints return no HSTS, X-Content-Type-Options, or framing protection headers |
+| `a2a-registry-poison-001` | Agent Registry Poisoning | Registry endpoint accepts unauthenticated agent card registration or identity overwrite |
+| `a2a-circular-delegation-001` | Circular Delegation | Agent accepts `tasks/send` with a 10-hop delegation chain and no depth-limit error |
+
+### MCP (Model Context Protocol)
+
+| Rule ID | Attack | What it confirms |
+|---|---|---|
+| `mcp-oauth-dcr-001` | OAuth DCR Scope Escalation | Dynamic client registration grants excessive scopes or accepts hijacked redirect URIs |
+| `mcp-tool-poison-001` | Tool Poisoning / Rug Pull | Tool descriptions contain prompt injection patterns or change across sessions |
+| `mcp-resources-unauth-001` | Unauthenticated Resource Read | Resources endpoint returns secrets or configuration data without credentials |
+| `mcp-sampling-inject-001` | Sampling Injection | `sampling/createMessage` requests from the server embed prompt injection |
+| `mcp-token-replay-001` | Bearer Token Replay | OAuth tokens with incorrect `aud` claims accepted without audience validation |
+| `mcp-init-downgrade-001` | Protocol Version Downgrade | Server disables security controls when negotiating protocol version `2024-11-05` |
+| `mcp-cors-wildcard-001` | CORS Wildcard with Credentials | Server returns `Access-Control-Allow-Origin: *` alongside `Access-Control-Allow-Credentials: true` |
+| `mcp-prompt-unauth-001` | Prompt Templates Without Auth | `prompts/list` and `prompts/get` respond without credentials |
+| `mcp-context-flood-001` | Context Window Flooding | Server accepts 1MB and 5MB tool call arguments with no payload size limit |
+| `mcp-tool-namespace-001` | Tool Namespace Collision | Tool descriptions differ between two independent sessions (rug pull precondition) |
+| `mcp-sse-hijack-001` | Unauthenticated SSE Stream | SSE stream endpoints accept connections without authentication |
+| `mcp-init-instructions-inject-001` | Server Instructions Injection | `serverInfo.instructions` returned at initialize time contains prompt injection patterns |
+| `mcp-ratelimit-absent-001` | Missing Rate Limiting | Server accepts 25-request burst with no HTTP 429 or throttle response |
+| `mcp-homoglyph-tool-001` | Tool Name Homoglyph | Server accepts `tools/call` with Unicode homoglyph tool names without identity normalization |
+| `mcp-injection-params-001` | Tool Parameter Injection | SQL errors, command output, or script tags reflected from unsanitized tool call arguments |
+| `mcp-security-headers-001` | Missing Security Headers | MCP endpoints return no HSTS, X-Content-Type-Options, or framing protection headers |
 
 ## What makes Batesian different
 
 |  | Batesian | Snyk agent-scan | cisco/a2a-scanner | cisco/mcp-scanner |
 |---|:---:|:---:|:---:|:---:|
 | **Approach** | Active red-team | Passive supply-chain scan | Passive static + light endpoint | Passive YARA / LLM / behavioral |
-| Active adversarial probing (sends attack payloads) | ✓ | ✗ | ✗ | ✗ |
-| A2A active attack rules | 16 | 0 | 0 | 0 |
-| MCP active attack rules | 14 | 0 | 0 | 0 |
+| Active adversarial probing | ✓ | ✗ | ✗ | ✗ |
 | OOB / blind SSRF detection | ✓ | ✗ | ✗ | ✗ |
-| Cryptographic attack testing (JWS alg confusion) | ✓ | ✗ | ✗ | ✗ |
-| OAuth flow attack testing (DCR scope escalation) | ✓ | ✗ | ✗ | ✗ |
+| Cryptographic attack testing | ✓ | ✗ | ✗ | ✗ |
+| OAuth flow attack testing | ✓ | ✗ | ✗ | ✗ |
 | CORS misconfiguration testing | ✓ | ✗ | ✗ | ✗ |
 | Protocol version downgrade attacks | ✓ | ✗ | ✗ | ✗ |
-| Cross-protocol (A2A + MCP) in one tool | ✓ | ✗ | ✗ | ✗ |
-| SARIF output (GitHub Code Scanning) | ✓ | ✗ | ✗ | ✗ |
 | Single compiled binary, no runtime dependencies | ✓ | ✗ | ✗ | ✗ |
 | No cloud account or API key required | ✓ | ✗ (Snyk token) | optional | optional |
 | Air-gap / offline compatible | ✓ | ✗ | ✗ | ✗ |
 | YAML rule packs (no Go required to add rules) | ✓ | ✗ | ✗ | ✗ |
-| Supply-chain / skill file static scanning | ✗ | ✓ | ✗ | partial |
-| Source code / behavioral analysis | ✗ | ✗ | ✓ (YARA + LLM) | ✓ (behavioral + YARA) |
 
 ---
 
