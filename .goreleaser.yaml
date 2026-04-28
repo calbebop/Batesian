@@ -25,7 +25,7 @@ builds:
       - goos: windows
         goarch: arm64
     ldflags:
-      - -s -w -trimpath
+      - -s -w
       - -X main.version={{.Version}}
       - -X main.commit={{.ShortCommit}}
       - -X main.date={{.Date}}
@@ -96,13 +96,10 @@ release:
     ### Install
 
     ```bash
-    # macOS / Linux
-    brew install calvin-mcdowell/tap/batesian
-
     # Go
     go install github.com/calvin-mcdowell/batesian/cmd/batesian@{{.Tag}}
 
-    # Binary — download from assets below, then:
+    # Binary -- download from assets below, then:
     chmod +x batesian && sudo mv batesian /usr/local/bin/
     ```
 
