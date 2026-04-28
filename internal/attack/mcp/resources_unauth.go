@@ -41,7 +41,7 @@ func (e *ResourcesUnauthExecutor) Execute(ctx context.Context, target string, op
 	client := attack.NewHTTPClient(opts, vars)
 
 	// MCP requires an initialize handshake before any method calls.
-	endpoint, err := initializeMCP(ctx, client, vars.BaseURL)
+	session, err := initializeMCP(ctx, client, vars.BaseURL)
 	if err != nil {
 		return nil, nil // not an MCP server
 	}
@@ -49,7 +49,7 @@ func (e *ResourcesUnauthExecutor) Execute(ctx context.Context, target string, op
 	var findings []attack.Finding
 
 	// Step 1: resources/list — enumerate available resources
-	listResp, err := client.POST(ctx, endpoint, nil, map[string]interface{}{
+	listResp, err := client.POST(ctx, session.Endpoint, session.header(), map[string]interface{}{
 		"jsonrpc": "2.0",
 		"id":      3,
 		"method":  "resources/list",
@@ -93,10 +93,10 @@ func (e *ResourcesUnauthExecutor) Execute(ctx context.Context, target string, op
 		Description: fmt.Sprintf(
 			"resources/list at %s returned %d resources without any authentication. "+
 				"An attacker can enumerate all available data sources and then read their contents "+
-				"using resources/read.", endpoint, len(uris)),
-		Evidence:    fmt.Sprintf("HTTP %d from %s\nresources (%d): %v", listResp.StatusCode, endpoint, len(uris), uris),
+				"using resources/read.", session.Endpoint, len(uris)),
+		Evidence:    fmt.Sprintf("HTTP %d from %s\nresources (%d): %v", listResp.StatusCode, session.Endpoint, len(uris), uris),
 		Remediation: e.rule.Remediation,
-		TargetURL:   endpoint,
+		TargetURL:   session.Endpoint,
 	})
 
 	// Step 2: read the first resource
@@ -104,7 +104,7 @@ func (e *ResourcesUnauthExecutor) Execute(ctx context.Context, target string, op
 		return findings, nil
 	}
 
-	readResp, err := client.POST(ctx, endpoint, nil, map[string]interface{}{
+	readResp, err := client.POST(ctx, session.Endpoint, session.header(), map[string]interface{}{
 		"jsonrpc": "2.0",
 		"id":      4,
 		"method":  "resources/read",
@@ -135,7 +135,7 @@ func (e *ResourcesUnauthExecutor) Execute(ctx context.Context, target string, op
 		}
 	}
 
-	evidenceLines := fmt.Sprintf("HTTP %d from %s\nresource URI: %s\ncontent snippet: %.400s", readResp.StatusCode, endpoint, uris[0], content)
+	evidenceLines := fmt.Sprintf("HTTP %d from %s\nresource URI: %s\ncontent snippet: %.400s", readResp.StatusCode, session.Endpoint, uris[0], content)
 	title := fmt.Sprintf("MCP resource %q content readable without authentication", uris[0])
 	description := fmt.Sprintf("resources/read for %s returned content without authentication. "+
 		"Resource data is directly accessible to any unauthenticated caller.", uris[0])
@@ -154,14 +154,17 @@ func (e *ResourcesUnauthExecutor) Execute(ctx context.Context, target string, op
 		Description: description,
 		Evidence:    evidenceLines,
 		Remediation: e.rule.Remediation,
-		TargetURL:   endpoint,
+		TargetURL:   session.Endpoint,
 	})
 
 	return findings, nil
 }
 
-// initializeMCP performs the MCP initialize handshake and returns the working endpoint.
-func initializeMCP(ctx context.Context, client *attack.HTTPClient, baseURL string) (string, error) {
+// initializeMCP performs the MCP initialize handshake and returns a session
+// containing the working endpoint and the Mcp-Session-Id header value (if any).
+// Servers implementing MCP 2025-03-26 require the session ID on all follow-up
+// requests; omitting it causes 4xx errors that silently suppress findings.
+func initializeMCP(ctx context.Context, client *attack.HTTPClient, baseURL string) (mcpSession, error) {
 	endpoints := []string{
 		baseURL + "/mcp",
 		baseURL + "/",
@@ -187,14 +190,19 @@ func initializeMCP(ctx context.Context, client *attack.HTTPClient, baseURL strin
 			continue
 		}
 
+		session := mcpSession{
+			Endpoint:  ep,
+			SessionID: initResp.Headers.Get("Mcp-Session-Id"),
+		}
+
 		// notifications/initialized — fire and forget
-		_, _ = client.POST(ctx, ep, nil, map[string]interface{}{
+		_, _ = client.POST(ctx, ep, session.header(), map[string]interface{}{
 			"jsonrpc": "2.0",
 			"method":  "notifications/initialized",
 		})
 
-		return ep, nil
+		return session, nil
 	}
 
-	return "", fmt.Errorf("no MCP server found at %s", baseURL)
+	return mcpSession{}, fmt.Errorf("no MCP server found at %s", baseURL)
 }

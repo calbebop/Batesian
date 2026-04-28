@@ -1,6 +1,7 @@
 package attack
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	"crypto/tls"
@@ -122,7 +123,8 @@ func (c *HTTPClient) do(ctx context.Context, method, url string, body io.Reader,
 		return nil, fmt.Errorf("building %s %s: %w", method, url, err)
 	}
 	req.Header.Set("User-Agent", "batesian/dev (https://github.com/calvin-mcdowell/batesian)")
-	req.Header.Set("Accept", "application/json")
+	// MCP streamable HTTP requires text/event-stream in Accept; A2A servers ignore it.
+	req.Header.Set("Accept", "application/json, text/event-stream")
 	for k, v := range headers {
 		req.Header.Set(k, v)
 	}
@@ -135,10 +137,18 @@ func (c *HTTPClient) do(ctx context.Context, method, url string, body io.Reader,
 	}
 	defer resp.Body.Close()
 
-	respBody, err := io.ReadAll(io.LimitReader(resp.Body, maxBody))
-	if err != nil {
-		return nil, fmt.Errorf("reading response from %s: %w", url, err)
+	var respBody []byte
+	ct := resp.Header.Get("Content-Type")
+	if strings.Contains(ct, "text/event-stream") {
+		// SSE streams never close; read only the first data event then stop.
+		respBody = readFirstSSEEvent(resp.Body)
+	} else {
+		respBody, err = io.ReadAll(io.LimitReader(resp.Body, maxBody))
+		if err != nil {
+			return nil, fmt.Errorf("reading response from %s: %w", url, err)
+		}
 	}
+
 	return &Response{
 		URL:        url,
 		StatusCode: resp.StatusCode,
@@ -146,6 +156,26 @@ func (c *HTTPClient) do(ctx context.Context, method, url string, body io.Reader,
 		Body:       respBody,
 		Elapsed:    elapsed,
 	}, nil
+}
+
+// readFirstSSEEvent reads a Server-Sent Events stream and returns the JSON payload
+// from the first "data:" line. The connection is not drained; the caller's defer
+// closes the body once we return. This avoids hanging indefinitely on a stream
+// that the server never closes (standard for MCP streamable HTTP transport).
+//
+// The scanner buffer is set to maxBody (1 MB) because MCP servers can emit
+// data lines with large embedded payloads (e.g., server instructions).
+func readFirstSSEEvent(r io.Reader) []byte {
+	scanner := bufio.NewScanner(io.LimitReader(r, maxBody))
+	scanner.Buffer(make([]byte, maxBody), maxBody)
+	for scanner.Scan() {
+		line := scanner.Text()
+		if strings.HasPrefix(line, "data:") {
+			payload := strings.TrimSpace(strings.TrimPrefix(line, "data:"))
+			return []byte(payload)
+		}
+	}
+	return nil
 }
 
 // marshalBody encodes body as JSON with template variable expansion applied to string values.

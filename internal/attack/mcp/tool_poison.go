@@ -99,7 +99,7 @@ func (e *ToolPoisonExecutor) Execute(ctx context.Context, target string, opts at
 	client := attack.NewHTTPClient(opts, vars)
 
 	// First call to tools/list
-	tools1, mcpEndpoint, err := listMCPTools(ctx, client, vars.BaseURL)
+	tools1, session, err := listMCPTools(ctx, client, vars.BaseURL)
 	if err != nil || len(tools1) == 0 {
 		return nil, nil // not an MCP server or no tools available
 	}
@@ -111,7 +111,7 @@ func (e *ToolPoisonExecutor) Execute(ctx context.Context, target string, opts at
 		desc, _ := tool["description"].(string)
 
 		// Scan tool description
-		if f := e.scanDescription(ctx, name, desc, "description", mcpEndpoint); f != nil {
+		if f := e.scanDescription(ctx, name, desc, "description", session.Endpoint); f != nil {
 			findings = append(findings, f...)
 		}
 
@@ -122,7 +122,7 @@ func (e *ToolPoisonExecutor) Execute(ctx context.Context, target string, opts at
 					prop, _ := propRaw.(map[string]interface{})
 					propDesc, _ := prop["description"].(string)
 					field := fmt.Sprintf("inputSchema.properties.%s.description", propName)
-					if f := e.scanDescription(ctx, name, propDesc, field, mcpEndpoint); f != nil {
+					if f := e.scanDescription(ctx, name, propDesc, field, session.Endpoint); f != nil {
 						findings = append(findings, f...)
 					}
 				}
@@ -145,7 +145,7 @@ func (e *ToolPoisonExecutor) Execute(ctx context.Context, target string, opts at
 				"establishment, then switched to malicious ones after the client begins processing.",
 			Evidence:    rugEvidence,
 			Remediation: e.rule.Remediation,
-			TargetURL:   mcpEndpoint,
+			TargetURL:   session.Endpoint,
 		})
 	}
 
@@ -181,8 +181,9 @@ func (e *ToolPoisonExecutor) scanDescription(_ context.Context, toolName, desc, 
 }
 
 // listMCPTools performs the MCP initialize -> notifications/initialized -> tools/list
-// handshake and returns the tools array. Tries common MCP endpoint paths.
-func listMCPTools(ctx context.Context, client *attack.HTTPClient, baseURL string) ([]map[string]interface{}, string, error) {
+// handshake and returns the tools array along with the session for follow-up requests.
+// Tries common MCP endpoint paths.
+func listMCPTools(ctx context.Context, client *attack.HTTPClient, baseURL string) ([]map[string]interface{}, mcpSession, error) {
 	endpoints := []string{
 		baseURL + "/mcp",
 		baseURL + "/",
@@ -209,14 +210,19 @@ func listMCPTools(ctx context.Context, client *attack.HTTPClient, baseURL string
 			continue
 		}
 
+		session := mcpSession{
+			Endpoint:  ep,
+			SessionID: initResp.Headers.Get("Mcp-Session-Id"),
+		}
+
 		// Step 2: initialized notification (fire-and-forget)
-		_, _ = client.POST(ctx, ep, nil, map[string]interface{}{
+		_, _ = client.POST(ctx, ep, session.header(), map[string]interface{}{
 			"jsonrpc": "2.0",
 			"method":  "notifications/initialized",
 		})
 
 		// Step 3: list tools
-		toolsResp, err := client.POST(ctx, ep, nil, map[string]interface{}{
+		toolsResp, err := client.POST(ctx, ep, session.header(), map[string]interface{}{
 			"jsonrpc": "2.0",
 			"id":      2,
 			"method":  "tools/list",
@@ -242,10 +248,10 @@ func listMCPTools(ctx context.Context, client *attack.HTTPClient, baseURL string
 				tools = append(tools, tm)
 			}
 		}
-		return tools, ep, nil
+		return tools, session, nil
 	}
 
-	return nil, "", fmt.Errorf("no MCP tools/list endpoint found at %s", baseURL)
+	return nil, mcpSession{}, fmt.Errorf("no MCP tools/list endpoint found at %s", baseURL)
 }
 
 // diffTools compares two tools/list snapshots and returns evidence of changes, or "" if identical.

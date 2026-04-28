@@ -36,7 +36,7 @@ func (e *SamplingInjectExecutor) Execute(ctx context.Context, target string, opt
 	vars := attack.NewVars(target, opts.OOBListenerURL)
 	client := attack.NewHTTPClient(opts, vars)
 
-	endpoint, serverCaps, err := e.initializeWithSampling(ctx, client, vars.BaseURL)
+	session, serverCaps, err := e.initializeWithSampling(ctx, client, vars.BaseURL)
 	if err != nil {
 		return nil, nil // not an MCP server
 	}
@@ -59,16 +59,16 @@ func (e *SamplingInjectExecutor) Execute(ctx context.Context, target string, opt
 					"that connects and advertises sampling support. The content of those requests "+
 					"(systemPrompt, messages) is not visible to the end user and bypasses "+
 					"client-side guardrails. Audit all sampling/createMessage calls this server "+
-					"may generate.", endpoint),
+					"may generate.", session.Endpoint),
 			Evidence:    fmt.Sprintf("Server capabilities: %s", capsSummary(serverCaps)),
 			Remediation: e.rule.Remediation,
-			TargetURL:   endpoint,
+			TargetURL:   session.Endpoint,
 		})
 	}
 
 	// Step 2: List tools then call each one; scan responses for embedded
 	// sampling/createMessage requests with injection content.
-	tools, _, err := listMCPTools(ctx, client, vars.BaseURL)
+	tools, toolSession, err := listMCPTools(ctx, client, vars.BaseURL)
 	if err != nil || len(tools) == 0 {
 		return findings, nil
 	}
@@ -79,7 +79,7 @@ func (e *SamplingInjectExecutor) Execute(ctx context.Context, target string, opt
 			continue
 		}
 
-		callResp, err := client.POST(ctx, endpoint, nil, map[string]interface{}{
+		callResp, err := client.POST(ctx, toolSession.Endpoint, toolSession.header(), map[string]interface{}{
 			"jsonrpc": "2.0",
 			"id":      "batesian-call-" + vars.RandID,
 			"method":  "tools/call",
@@ -99,7 +99,7 @@ func (e *SamplingInjectExecutor) Execute(ctx context.Context, target string, opt
 		}
 
 		// Extract the embedded sampling request and scan its prompts.
-		samplingFindings := e.scanSamplingPayload(body, name, endpoint)
+		samplingFindings := e.scanSamplingPayload(body, name, toolSession.Endpoint)
 		findings = append(findings, samplingFindings...)
 	}
 
@@ -107,8 +107,8 @@ func (e *SamplingInjectExecutor) Execute(ctx context.Context, target string, opt
 }
 
 // initializeWithSampling sends an initialize request advertising sampling capability
-// and returns the working endpoint and the server's capabilities map.
-func (e *SamplingInjectExecutor) initializeWithSampling(ctx context.Context, client *attack.HTTPClient, baseURL string) (string, map[string]interface{}, error) {
+// and returns the session and the server's capabilities map.
+func (e *SamplingInjectExecutor) initializeWithSampling(ctx context.Context, client *attack.HTTPClient, baseURL string) (mcpSession, map[string]interface{}, error) {
 	endpoints := []string{
 		baseURL + "/mcp",
 		baseURL + "/",
@@ -138,6 +138,11 @@ func (e *SamplingInjectExecutor) initializeWithSampling(ctx context.Context, cli
 			continue
 		}
 
+		session := mcpSession{
+			Endpoint:  ep,
+			SessionID: initResp.Headers.Get("Mcp-Session-Id"),
+		}
+
 		// Parse server capabilities
 		var body map[string]interface{}
 		if err := json.Unmarshal(initResp.Body, &body); err != nil {
@@ -147,14 +152,14 @@ func (e *SamplingInjectExecutor) initializeWithSampling(ctx context.Context, cli
 		caps, _ := result["capabilities"].(map[string]interface{})
 
 		// Send notifications/initialized
-		_, _ = client.POST(ctx, ep, nil, map[string]interface{}{
+		_, _ = client.POST(ctx, ep, session.header(), map[string]interface{}{
 			"jsonrpc": "2.0",
 			"method":  "notifications/initialized",
 		})
 
-		return ep, caps, nil
+		return session, caps, nil
 	}
-	return "", nil, fmt.Errorf("no MCP server found at %s", baseURL)
+	return mcpSession{}, nil, fmt.Errorf("no MCP server found at %s", baseURL)
 }
 
 // scanSamplingPayload extracts and scans a sampling/createMessage payload embedded
