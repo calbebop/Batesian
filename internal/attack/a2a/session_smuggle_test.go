@@ -64,6 +64,18 @@ func TestSessionSmuggleExecutor_RoleInjectionAccepted(t *testing.T) {
 	if len(findings) == 0 {
 		t.Fatal("expected at least one finding for role injection acceptance, got zero")
 	}
+	rc := testRuleCtx()
+	for _, f := range findings {
+		if f.RuleID != rc.ID {
+			t.Errorf("finding has rule ID %q; want %q", f.RuleID, rc.ID)
+		}
+		if f.Severity == "" {
+			t.Error("finding has empty severity")
+		}
+		if f.Title == "" {
+			t.Error("finding has empty title")
+		}
+	}
 }
 
 // TestSessionSmuggleExecutor_RoleInjectionRejected verifies that when the

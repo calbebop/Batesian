@@ -130,8 +130,13 @@ func (e *ToolPoisonExecutor) Execute(ctx context.Context, target string, opts at
 		}
 	}
 
-	// Rug pull: call tools/list a second time after a short delay and compare
-	time.Sleep(500 * time.Millisecond)
+	// Rug pull: call tools/list a second time after a short delay and compare.
+	// Use context-aware sleep so the executor respects cancellation.
+	select {
+	case <-ctx.Done():
+		return findings, ctx.Err()
+	case <-time.After(500 * time.Millisecond):
+	}
 	tools2, _, _ := listMCPTools(ctx, client, vars.BaseURL)
 	if rugEvidence := diffTools(tools1, tools2); rugEvidence != "" {
 		findings = append(findings, attack.Finding{
@@ -184,13 +189,7 @@ func (e *ToolPoisonExecutor) scanDescription(_ context.Context, toolName, desc, 
 // handshake and returns the tools array along with the session for follow-up requests.
 // Tries common MCP endpoint paths.
 func listMCPTools(ctx context.Context, client *attack.HTTPClient, baseURL string) ([]map[string]interface{}, mcpSession, error) {
-	endpoints := []string{
-		baseURL + "/mcp",
-		baseURL + "/",
-		baseURL + "/api",
-		baseURL + "/rpc",
-	}
-
+	endpoints := endpointCandidates(baseURL)
 	for _, ep := range endpoints {
 		// Step 1: initialize
 		initResp, err := client.POST(ctx, ep, nil, map[string]interface{}{

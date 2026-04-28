@@ -94,7 +94,7 @@ func (e *ToolNamespaceExecutor) Execute(ctx context.Context, target string, opts
 			continue
 		}
 
-		descA := toolA["description"].(string)
+		descA, _ := toolA["description"].(string)
 		descB, _ := toolB["description"].(string)
 		if descA != descB {
 			findings = append(findings, attack.Finding{

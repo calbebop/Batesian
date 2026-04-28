@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"os"
 	"strings"
 	"text/tabwriter"
 	"time"
@@ -59,11 +58,6 @@ type Printer struct {
 // New creates a Printer writing to w.
 func New(w io.Writer, verbose bool) *Printer {
 	return &Printer{w: w, verbose: verbose}
-}
-
-// Default creates a Printer writing to stdout.
-func Default(verbose bool) *Printer {
-	return New(os.Stdout, verbose)
 }
 
 // Banner prints the Batesian tool banner.

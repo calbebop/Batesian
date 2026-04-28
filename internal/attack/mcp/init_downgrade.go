@@ -30,12 +30,7 @@ func (e *InitDowngradeExecutor) Execute(ctx context.Context, target string, opts
 	vars := attack.NewVars(target, opts.OOBListenerURL)
 	client := attack.NewHTTPClient(opts, vars)
 
-	endpoints := []string{
-		vars.BaseURL + "/mcp",
-		vars.BaseURL + "/",
-		vars.BaseURL + "/api",
-		vars.BaseURL + "/rpc",
-	}
+	endpoints := endpointCandidates(vars.BaseURL)
 
 	for _, ep := range endpoints {
 		findings, err := e.probeEndpoint(ctx, client, ep)

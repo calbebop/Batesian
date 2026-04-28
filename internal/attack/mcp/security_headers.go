@@ -71,7 +71,7 @@ func (e *MCPSecurityHeadersExecutor) Execute(ctx context.Context, target string,
 
 	// Send a minimal MCP initialize POST to the most likely endpoint paths
 	// to get a real server response with full security headers.
-	probePaths := []string{"/mcp", "/", "/api", "/rpc"}
+	probePaths := candidatePaths
 
 	var findings []attack.Finding
 	checked := false

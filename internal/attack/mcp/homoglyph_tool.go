@@ -99,7 +99,7 @@ func (e *HomoglyphToolExecutor) Execute(ctx context.Context, target string, opts
 			continue // Correct behavior.
 		}
 
-		if resp.IsSuccess() || resp.StatusCode >= 200 {
+		if resp.IsSuccess() {
 			findings = append(findings, attack.Finding{
 				RuleID:     e.rule.ID,
 				RuleName:   e.rule.Name,

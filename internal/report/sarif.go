@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"sort"
 
 	attackpkg "github.com/calvin-mcdowell/batesian/internal/attack"
 	"github.com/calvin-mcdowell/batesian/internal/engine"
@@ -116,10 +117,15 @@ func buildSARIF(target string, results []engine.RunResult, toolVersion string) s
 		}
 	}
 
-	// Collect unique rules in stable order.
+	// Collect unique rules sorted by ID for deterministic output.
+	ruleIDs := make([]string, 0, len(ruleMap))
+	for id := range ruleMap {
+		ruleIDs = append(ruleIDs, id)
+	}
+	sort.Strings(ruleIDs)
 	rules := make([]sarifRule, 0, len(ruleMap))
-	for _, rule := range ruleMap {
-		rules = append(rules, rule)
+	for _, id := range ruleIDs {
+		rules = append(rules, ruleMap[id])
 	}
 
 	if toolVersion == "" {

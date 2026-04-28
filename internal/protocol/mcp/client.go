@@ -27,8 +27,9 @@ var candidatePaths = []string{"/mcp", "/", "/api", "/rpc"}
 
 // Client is a lightweight MCP protocol client for use by the probe command.
 type Client struct {
-	http    *http.Client
-	baseURL string
+	http        *http.Client
+	baseURL     string
+	bearerToken string
 }
 
 // ClientOption configures a Client.
@@ -37,6 +38,11 @@ type ClientOption func(*Client)
 // WithTimeout sets the HTTP request timeout.
 func WithTimeout(d time.Duration) ClientOption {
 	return func(c *Client) { c.http.Timeout = d }
+}
+
+// WithBearerToken attaches an Authorization: Bearer header to every request.
+func WithBearerToken(token string) ClientOption {
+	return func(c *Client) { c.bearerToken = token }
 }
 
 // WithSkipTLSVerify disables TLS certificate verification.
@@ -354,6 +360,9 @@ func (c *Client) newRequest(ctx context.Context, ep string, body []byte) (*http.
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Accept", "application/json, text/event-stream")
 	req.Header.Set("User-Agent", "batesian/dev (https://github.com/calvin-mcdowell/batesian)")
+	if c.bearerToken != "" {
+		req.Header.Set("Authorization", "Bearer "+c.bearerToken)
+	}
 	return req, nil
 }
 

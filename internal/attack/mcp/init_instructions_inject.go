@@ -30,12 +30,7 @@ func (e *InitInstructionsInjectExecutor) Execute(ctx context.Context, target str
 	vars := attack.NewVars(target, opts.OOBListenerURL)
 	client := attack.NewHTTPClient(opts, vars)
 
-	endpoints := []string{
-		vars.BaseURL + "/mcp",
-		vars.BaseURL + "/",
-		vars.BaseURL + "/api",
-		vars.BaseURL + "/rpc",
-	}
+	endpoints := endpointCandidates(vars.BaseURL)
 
 	for _, ep := range endpoints {
 		initResp, err := client.POST(ctx, ep, nil, map[string]interface{}{
@@ -64,12 +59,12 @@ func (e *InitInstructionsInjectExecutor) Execute(ctx context.Context, target str
 		// Extract serverInfo.instructions (the primary injection surface).
 		instructions := extractInstructions(result)
 		if instructions == "" {
-			return nil, nil // Field absent; nothing to score.
+			continue // Field absent on this endpoint; try the next candidate.
 		}
 
 		score, matched := scoreDescription(instructions)
 		if score < 2 {
-			return nil, nil
+			continue // Score below threshold; not actionable on this endpoint.
 		}
 
 		sev := scoreToSeverity(score)

@@ -1,5 +1,18 @@
 package mcp
 
+// candidatePaths are tried in order when discovering an MCP endpoint.
+// Servers commonly mount the JSON-RPC handler at /mcp, /, /api, or /rpc.
+var candidatePaths = []string{"/mcp", "/", "/api", "/rpc"}
+
+// endpointCandidates returns candidate URLs to try for the given base URL.
+func endpointCandidates(baseURL string) []string {
+	out := make([]string, len(candidatePaths))
+	for i, p := range candidatePaths {
+		out[i] = baseURL + p
+	}
+	return out
+}
+
 // mcpSession holds the discovered MCP endpoint and the session ID returned by
 // the server's initialize response. All subsequent JSON-RPC requests in the
 // same MCP connection must echo the session ID via the Mcp-Session-Id header;

@@ -54,11 +54,10 @@ func TestSecurityHeaders_AllPresent(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	// Referrer-Policy is present and STS/XCTO/Frame are present.
-	// Only findings for actually missing headers should appear.
-	for _, f := range findings {
-		if f.Severity != "info" {
-			t.Errorf("unexpected non-info finding when all required headers are present: %q", f.Title)
+	// All required headers are present; executor must return zero findings.
+	if len(findings) != 0 {
+		for _, f := range findings {
+			t.Errorf("unexpected finding when all required headers are present: %q (severity: %s)", f.Title, f.Severity)
 		}
 	}
 }

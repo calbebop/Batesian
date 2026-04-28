@@ -109,13 +109,7 @@ func (e *SamplingInjectExecutor) Execute(ctx context.Context, target string, opt
 // initializeWithSampling sends an initialize request advertising sampling capability
 // and returns the session and the server's capabilities map.
 func (e *SamplingInjectExecutor) initializeWithSampling(ctx context.Context, client *attack.HTTPClient, baseURL string) (mcpSession, map[string]interface{}, error) {
-	endpoints := []string{
-		baseURL + "/mcp",
-		baseURL + "/",
-		baseURL + "/api",
-		baseURL + "/rpc",
-	}
-
+	endpoints := endpointCandidates(baseURL)
 	for _, ep := range endpoints {
 		initResp, err := client.POST(ctx, ep, nil, map[string]interface{}{
 			"jsonrpc": "2.0",

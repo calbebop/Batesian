@@ -23,15 +23,6 @@ func LoadFS(fsys fs.FS) ([]*Rule, []LoadWarning, error) {
 	return loadFS(fsys, ".")
 }
 
-// LoadFile loads and validates a single rule file.
-func LoadFile(path string) (*Rule, error) {
-	data, err := os.ReadFile(path)
-	if err != nil {
-		return nil, fmt.Errorf("reading rule file %s: %w", path, err)
-	}
-	return parseRule(data, path)
-}
-
 // LoadWarning records a non-fatal error encountered while loading rules.
 type LoadWarning struct {
 	Path string

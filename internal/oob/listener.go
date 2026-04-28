@@ -111,7 +111,7 @@ func (l *Listener) Stop(ctx context.Context) error {
 }
 
 func (l *Listener) handleCallback(w http.ResponseWriter, r *http.Request) {
-	body, _ := io.ReadAll(io.LimitReader(r.Body, 1<<16))
+	body, _ := io.ReadAll(io.LimitReader(r.Body, 1<<16)) //nolint:errcheck // best-effort; partial body still valuable
 	cb := Callback{
 		Method:  r.Method,
 		URL:     r.RequestURI,

@@ -165,13 +165,7 @@ func (e *ResourcesUnauthExecutor) Execute(ctx context.Context, target string, op
 // Servers implementing MCP 2025-03-26 require the session ID on all follow-up
 // requests; omitting it causes 4xx errors that silently suppress findings.
 func initializeMCP(ctx context.Context, client *attack.HTTPClient, baseURL string) (mcpSession, error) {
-	endpoints := []string{
-		baseURL + "/mcp",
-		baseURL + "/",
-		baseURL + "/api",
-		baseURL + "/rpc",
-	}
-
+	endpoints := endpointCandidates(baseURL)
 	for _, ep := range endpoints {
 		initResp, err := client.POST(ctx, ep, nil, map[string]interface{}{
 			"jsonrpc": "2.0",

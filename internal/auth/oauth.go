@@ -78,9 +78,12 @@ func FetchClientCredentialsToken(ctx context.Context, cfg ClientCredentialsConfi
 	}
 	defer resp.Body.Close()
 
-	body, _ := io.ReadAll(io.LimitReader(resp.Body, 64*1024))
+	body, readErr := io.ReadAll(io.LimitReader(resp.Body, 64*1024))
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("token endpoint returned HTTP %d: %s", resp.StatusCode, string(body))
+	}
+	if readErr != nil {
+		return nil, fmt.Errorf("reading token response: %w", readErr)
 	}
 
 	var tok TokenResponse
@@ -163,9 +166,12 @@ func ExchangeAuthCode(ctx context.Context, cfg AuthCodeConfig) (*TokenResponse, 
 	}
 	defer resp.Body.Close()
 
-	body, _ := io.ReadAll(io.LimitReader(resp.Body, 64*1024))
+	body, readErr := io.ReadAll(io.LimitReader(resp.Body, 64*1024))
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("token endpoint returned HTTP %d: %s", resp.StatusCode, string(body))
+	}
+	if readErr != nil {
+		return nil, fmt.Errorf("reading auth code token response: %w", readErr)
 	}
 
 	var tok TokenResponse
@@ -205,8 +211,11 @@ func DiscoverTokenURL(ctx context.Context, issuer string) string {
 			continue
 		}
 
-		body, _ := io.ReadAll(io.LimitReader(resp.Body, 32*1024))
+		body, readErr := io.ReadAll(io.LimitReader(resp.Body, 32*1024))
 		resp.Body.Close()
+		if readErr != nil {
+			continue
+		}
 
 		var meta map[string]interface{}
 		if err := json.Unmarshal(body, &meta); err != nil {

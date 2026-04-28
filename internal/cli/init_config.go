@@ -30,7 +30,7 @@ func runInitConfig(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s already exists in the current directory; delete it first or edit it manually", filename)
 	}
 
-	if err := os.WriteFile(filename, []byte(config.Example()), 0644); err != nil {
+	if err := os.WriteFile(filename, []byte(config.Example()), 0600); err != nil {
 		return fmt.Errorf("writing %s: %w", filename, err)
 	}
 

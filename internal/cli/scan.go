@@ -66,7 +66,6 @@ func init() {
 }
 
 func runScan(cmd *cobra.Command, args []string) error {
-	// Load config file first; CLI flags override config values.
 	configPath, _ := cmd.Flags().GetString("config")
 	cfg, cfgErr := config.Load(configPath)
 	if cfgErr != nil {
@@ -88,7 +87,6 @@ func runScan(cmd *cobra.Command, args []string) error {
 	oobEnabled, _ := cmd.Flags().GetBool("oob")
 	oobURL, _ := cmd.Flags().GetString("oob-url")
 
-	// Apply config file defaults for unset flags.
 	if target == "" {
 		target = cfg.Target
 	}
@@ -111,7 +109,6 @@ func runScan(cmd *cobra.Command, args []string) error {
 		rulesDir = cfg.RulesDir
 	}
 	if token == "" {
-		// Also check environment variable BATESIAN_TOKEN.
 		token = firstNonEmpty(cfg.Token, os.Getenv("BATESIAN_TOKEN"))
 	}
 	if timeoutSecs == 10 && cfg.TimeoutSeconds > 0 {
@@ -131,7 +128,6 @@ func runScan(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("--target is required")
 	}
 
-	// If OAuth flags are provided and no token is set, acquire one automatically.
 	if token == "" {
 		tokenURL, _ := cmd.Flags().GetString("token-url")
 		clientID, _ := cmd.Flags().GetString("client-id")
@@ -157,7 +153,6 @@ func runScan(cmd *cobra.Command, args []string) error {
 	printer.Banner()
 	printer.ProbeHeader(target, coalesceProtocol(protocol))
 
-	// Load rules.
 	loaded, warns, err := loadRules(rulesDir)
 	if err != nil {
 		printer.Error("Failed to load rules: " + err.Error())
@@ -167,7 +162,6 @@ func runScan(cmd *cobra.Command, args []string) error {
 		printer.Warn(fmt.Sprintf("Skipping malformed rule %s: %v", w.Path, w.Err))
 	}
 
-	// Apply filters.
 	filter := &rules.Filter{
 		Protocols:  splitProtocols(protocol),
 		Severities: severities,
@@ -187,14 +181,6 @@ func runScan(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	// Configure OOB.
-	if oobURL == "" && oobEnabled {
-		// OOB listener is started inside the push-ssrf executor per target.
-		// Setting an empty OOBListenerURL triggers the auto-start behavior.
-		oobURL = ""
-	}
-
-	// Build execution options.
 	opts := attackpkg.Options{
 		OOBListenerURL: oobURL,
 		Token:          token,
@@ -203,12 +189,10 @@ func runScan(cmd *cobra.Command, args []string) error {
 		Verbose:        verbose,
 	}
 
-	// Run the scan.
 	eng := engine.New(opts)
 	ctx := context.Background()
 	results := eng.Run(ctx, target, filtered)
 
-	// Output results.
 	switch format {
 	case report.FormatSARIF:
 		return report.WriteSARIF(os.Stdout, target, results, "dev")
@@ -223,13 +207,11 @@ func runScan(cmd *cobra.Command, args []string) error {
 // loadRules loads built-in rules from the embedded filesystem, with an optional
 // override from a local directory on disk (--rules-dir flag).
 func loadRules(extraDir string) ([]*rules.Rule, []rules.LoadWarning, error) {
-	// Always load the embedded built-in rules first.
 	loaded, warns, err := rules.LoadFS(batesian.RulesFS())
 	if err != nil {
 		return nil, warns, fmt.Errorf("loading built-in rules: %w", err)
 	}
 
-	// Append any user-supplied extra rules from disk.
 	if extraDir != "" {
 		extra, extraWarns, extraErr := rules.LoadDir(extraDir)
 		warns = append(warns, extraWarns...)

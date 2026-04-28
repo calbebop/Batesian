@@ -86,7 +86,6 @@ func runProbe(cmd *cobra.Command, args []string) error {
 }
 
 func probeA2A(target, token string, timeoutSecs int, skipTLS bool, format report.Format, printer *report.Printer) error { //nolint:cyclop
-	// Build client options
 	opts := []a2a.ClientOption{
 		a2a.WithTimeout(time.Duration(timeoutSecs) * time.Second),
 	}
@@ -105,7 +104,6 @@ func probeA2A(target, token string, timeoutSecs int, skipTLS bool, format report
 	printer.ProbeHeader(target, "a2a")
 	ctx := context.Background()
 
-	// Fetch the agent card
 	printer.Verbose("GET " + target + a2a.WellKnownPath)
 	card, cardResult, err := client.FetchAgentCard(ctx)
 	if err != nil {
@@ -119,10 +117,8 @@ func probeA2A(target, token string, timeoutSecs int, skipTLS bool, format report
 	printer.Verbose(fmt.Sprintf("HTTP %d in %s", cardResult.StatusCode, cardResult.Elapsed.Round(time.Millisecond)))
 	printer.Success("Agent Card retrieved")
 
-	// Build the probe result
 	result := cardToProbeResult(card, cardResult.Elapsed)
 
-	// Inline check: extended agent card without auth
 	if card.Capabilities.ExtendedAgentCard {
 		printer.Verbose("Probing extended agent card (unauthenticated)...")
 		extResult, err := client.ProbeExtendedCard(ctx)
@@ -136,7 +132,6 @@ func probeA2A(target, token string, timeoutSecs int, skipTLS bool, format report
 			printer.Verbose(fmt.Sprintf("/extendedAgentCard returned HTTP %d (auth enforced)", extResult.StatusCode))
 		}
 
-		// Also try with a fabricated invalid token
 		printer.Verbose("Probing extended agent card with invalid token...")
 		extInvalidResult, err := client.ProbeExtendedCardWithInvalidToken(ctx, "batesian-invalid-probe-token")
 		if err == nil && extInvalidResult.IsSuccess() {
@@ -148,7 +143,6 @@ func probeA2A(target, token string, timeoutSecs int, skipTLS bool, format report
 		}
 	}
 
-	// Flag push notification attack surface
 	if card.Capabilities.PushNotifications {
 		result.Flags = append(result.Flags, report.AttackFlag{
 			Severity: "info",
@@ -157,7 +151,6 @@ func probeA2A(target, token string, timeoutSecs int, skipTLS bool, format report
 		})
 	}
 
-	// Render output
 	switch format {
 	case report.FormatJSON:
 		return printer.PrintJSON(buildJSONOutput(card, result))
@@ -209,6 +202,9 @@ func probeMCP(target, token string, timeoutSecs int, skipTLS bool, format report
 	opts := []mcp.ClientOption{
 		mcp.WithTimeout(time.Duration(timeoutSecs) * time.Second),
 	}
+	if token != "" {
+		opts = append(opts, mcp.WithBearerToken(token))
+	}
 	if skipTLS {
 		opts = append(opts, mcp.WithSkipTLSVerify())
 	}
@@ -245,7 +241,6 @@ func probeMCP(target, token string, timeoutSecs int, skipTLS bool, format report
 		HasLogging:      session.HasCapability("logging"),
 	}
 
-	// Enumerate tools
 	if result.HasTools {
 		printer.Verbose("tools/list")
 		tools, err := client.ListTools(ctx, session)
@@ -259,7 +254,6 @@ func probeMCP(target, token string, timeoutSecs int, skipTLS bool, format report
 		}
 	}
 
-	// Enumerate resources (and flag unauthenticated access)
 	if result.HasResources {
 		printer.Verbose("resources/list")
 		resources, err := client.ListResources(ctx, session)
@@ -270,7 +264,6 @@ func probeMCP(target, token string, timeoutSecs int, skipTLS bool, format report
 					MimeType: r.MimeType,
 				})
 			}
-			// No auth was used; resources returned — flag it
 			result.Flags = append(result.Flags, report.AttackFlag{
 				Severity: "high",
 				RuleID:   "mcp-resources-unauth-001",
@@ -279,7 +272,6 @@ func probeMCP(target, token string, timeoutSecs int, skipTLS bool, format report
 		}
 	}
 
-	// Enumerate prompts
 	if result.HasPrompts {
 		printer.Verbose("prompts/list")
 		prompts, err := client.ListPrompts(ctx, session)
@@ -301,7 +293,6 @@ func probeMCP(target, token string, timeoutSecs int, skipTLS bool, format report
 		}
 	}
 
-	// Flag sampling capability for manual audit
 	if result.HasSampling {
 		result.Flags = append(result.Flags, report.AttackFlag{
 			Severity: "medium",
@@ -310,7 +301,6 @@ func probeMCP(target, token string, timeoutSecs int, skipTLS bool, format report
 		})
 	}
 
-	// Flag tools for scan follow-up
 	if len(result.Tools) > 0 {
 		result.Flags = append(result.Flags, report.AttackFlag{
 			Severity: "info",
@@ -319,7 +309,6 @@ func probeMCP(target, token string, timeoutSecs int, skipTLS bool, format report
 		})
 	}
 
-	// No auth on any request: flag for token replay / OAuth probe
 	if token == "" {
 		result.Flags = append(result.Flags, report.AttackFlag{
 			Severity: "info",
