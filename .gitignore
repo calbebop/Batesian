@@ -54,3 +54,12 @@ ROADMAP.md
 *.sarif.tmp
 coverage.out
 coverage.html
+
+# Test server logs generated at runtime
+*.log
+*_err.log
+
+# Scan output artifacts generated during dev/validation
+testdata/*.sarif
+testdata/*.json
+*.sarif
