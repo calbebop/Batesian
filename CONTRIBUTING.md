@@ -1,79 +1,232 @@
 # Contributing to Batesian
 
-Thank you for your interest in contributing. Please read this document before opening a pull request.
+Batesian is an adversarial red-team CLI for AI agent protocols. Contributions
+are welcome, whether that is a new attack rule, a bug fix, or improved documentation.
 
-## Developer Certificate of Origin (DCO)
+## Before You Start
 
-All contributors must sign off their commits with a DCO. This is a lightweight way to certify that you wrote (or have the right to submit) the contribution.
+- Read the [project README](README.md) to understand what Batesian is and is not.
+- Batesian is an **active exploit engine**, not a passive scanner. Every rule
+  must send crafted payloads to a live endpoint and evaluate real server responses.
+  Heuristic-only rules belong in a different tool.
+- All contributions require a [Developer Certificate of Origin](https://developercertificate.org/)
+  sign-off: `git commit -s`. A CLA for organizational contributions is planned.
 
-Add `-s` to your commit command:
+---
 
-```bash
-git commit -s -m "feat: add new attack rule for X"
+## Rule Authoring Guide
+
+### Anatomy of a Rule
+
+Every Batesian rule is composed of four parts that must all be present before
+a rule is considered complete:
+
+```
+rules/<protocol>/<rule-id>.yaml          YAML descriptor
+internal/attack/<protocol>/<name>.go     Go executor
+internal/attack/<protocol>/<name>_test.go  Unit tests
+testdata/<name>_server.py                Vulnerable test server
 ```
 
-This adds a `Signed-off-by: Your Name <your@email.com>` trailer to the commit. A GitHub Action will automatically verify DCO compliance on all pull requests.
+### Naming Conventions
 
-The DCO does not transfer copyright. You retain ownership of your contribution. It simply certifies you have the right to submit it under the project's Apache 2.0 license.
+Rule IDs follow the pattern: `<protocol>-<attack-class>-<NNN>`
 
-## Ways to contribute
+Examples: `a2a-push-ssrf-001`, `mcp-tool-poison-001`, `a2a-wellknown-hostinject-001`
 
-- **Attack rules**: Add new YAML rule files under `rules/a2a/` or `rules/mcp/`. This is the highest-value contribution and requires no Go knowledge.
-- **Protocol support**: Extend coverage to new A2A/MCP transport variants or authentication schemes.
-- **Bug reports**: Open an issue with reproduction steps. For security-relevant bugs in Batesian itself, follow [SECURITY.md](SECURITY.md) instead.
-- **Documentation**: Improve docs, examples, or the project website.
+Protocols: `a2a`, `mcp`
 
-## Development setup
+### YAML Rule File
 
-```bash
-git clone https://github.com/calvin-mcdowell/batesian
-cd batesian
-go mod tidy
+Required fields:
+
+```yaml
+id: mcp-example-001
+info:
+  name: Short human-readable name
+  author: your-github-handle
+  severity: critical | high | medium | low | info
+  description: |
+    What vulnerability this tests, why it matters, and what an attacker
+    can do if the assertion fires. Be specific about the protocol behavior.
+  references:
+    - https://relevant-spec-or-cve-url
+  tags:
+    - mcp
+    - relevant-tag
+
+attack:
+  protocol: mcp | a2a
+  type: attack-type-string   # must match a case in internal/engine/engine.go
+
+assert:
+  - condition: condition_name
+    description: "What this assertion confirms"
+    severity: high
+
+remediation: |
+  1. Concrete fix step.
+  2. Another fix step.
+```
+
+### Go Executor
+
+Executors live in `internal/attack/a2a/` or `internal/attack/mcp/` and implement
+the `attack.Executor` interface:
+
+```go
+type Executor interface {
+    Execute(ctx context.Context, target string, opts Options) ([]Finding, error)
+}
+```
+
+Rules for executors:
+
+1. Return `nil, nil` (not an error) if the target is not the right protocol or
+   the precondition is not met. Errors are for unexpected failures, not clean skips.
+2. Set `Confidence` explicitly on every `Finding`:
+   - `attack.ConfirmedExploit`: the attack demonstrably succeeded.
+   - `attack.RiskIndicator`: a suspicious pattern detected, but exploitability
+     is not proven. Always include a note recommending manual verification.
+3. Keep executors focused. One rule = one attack class. Shared helpers (session
+   setup, SSE parsing) belong in package-level functions, not inlined.
+4. Never use `time.Sleep` for more than 500ms. Use `context.WithTimeout`.
+
+### Register the Executor
+
+Add a `case` to the switch in `internal/engine/engine.go`:
+
+```go
+case "your-attack-type":
+    return yourpkg.NewYourExecutor(rc), nil
+```
+
+---
+
+## Validation Checklist
+
+Every rule must pass all six steps before it can be merged. This is not optional.
+A rule with only unit tests is not production-ready.
+
+### Step 1: Unit Tests
+
+Write tests in `internal/attack/<protocol>/<name>_test.go` using
+`net/http/httptest` mock servers. Use the `package <proto>_test` convention
+(external test package) to match the existing test style.
+
+Required test cases for every rule:
+- **Vulnerable server**: mock server that exhibits the vulnerability. Assert that
+  the expected findings fire with the correct severity and `Confidence` value.
+- **Secure server**: mock server where auth is enforced or the vulnerability is
+  absent. Assert that zero findings (or zero `ConfirmedExploit` findings) are returned.
+- **Precondition not met**: server that doesn't support the relevant capability.
+  Assert clean skip (zero findings, no error).
+
+Run tests: `go test ./internal/attack/...`
+
+### Step 2: Testdata Server
+
+Write a Python server in `testdata/<name>_server.py` that deliberately
+implements the vulnerability. It must:
+
+- Start with `uvicorn` on a documented port (increment from the last used port).
+- Print startup confirmation lines so the caller can wait for readiness.
+- Implement only the minimum routes needed to trigger the rule.
+- Be self-contained with no external dependencies beyond `starlette` and `uvicorn`.
+- Include a module docstring listing which rule IDs it covers and how to run it.
+
+### Step 3: Live Validation
+
+Start the testdata server and run batesian against it:
+
+```sh
+# Start the server (in a separate terminal or background process)
+python testdata/<name>_server.py
+
+# Run the specific rule
+./batesian scan --target http://127.0.0.1:<port> \
+    --rule-ids <rule-id> --timeout 10 -v
+```
+
+Confirm:
+- The expected finding(s) appear with the correct severity.
+- The evidence field contains meaningful data (HTTP status, endpoint, snippet).
+- The scan completes in a reasonable time (under 15s for a single rule).
+
+### Step 4: Full Build and Test
+
+```sh
 go build ./...
 go test ./...
 ```
 
-## Pull request guidelines
+Both must pass with zero failures before committing.
 
-- One logical change per PR
-- Include tests for new functionality
-- Run `go vet ./...` and `golangci-lint run` before submitting
-- New attack rules must include at least one test fixture in `test/fixtures/`
-- Sign off your commits: `git commit -s`
-- Rule IDs must follow the format: `<protocol>-<attack-class>-<NNN>` (e.g., `a2a-push-ssrf-001`)
+### Step 5: Linter
 
-## Rule authoring guide
-
-Every rule YAML file must include:
-
-```yaml
-id: <protocol>-<attack-class>-<NNN>   # e.g. a2a-push-ssrf-001
-info:
-  name: <human-readable name>
-  author: <your GitHub handle>
-  severity: critical | high | medium | low | info
-  description: |
-    <what does this test, and why does it matter?>
-  references:
-    - <URL to research paper, CVE, or spec section>
-  tags:
-    - <protocol: a2a or mcp>
-    - <attack class>
-
-attack:
-  protocol: a2a | mcp
-  type: <attack type identifier>
-  # ... attack-specific fields
-
-assert:
-  - condition: <condition identifier>
-    description: <what this finding means>
-    severity: <severity if triggered>
-
-remediation: |
-  <how to fix this vulnerability>
+```sh
+go vet ./...
 ```
 
-## Code of conduct
+Fix all reported issues. `golangci-lint` is not currently enforced in CI due to
+Go version constraints, but `go vet` is.
 
-This project follows the [Contributor Covenant](CODE_OF_CONDUCT.md).
+### Step 6: Production-Like Validation (Best Effort)
+
+After the testdata server validation, attempt to run the rule against a real
+deployed target that you have explicit permission to test. Suitable targets:
+
+- Official reference implementations (e.g., `modelcontextprotocol/server-everything`
+  in Docker, `a2aproject/a2a-samples` helloworld server)
+- Your own deployed test instances
+- Any public target with a documented security testing policy
+
+Document the result (even "no findings on reference impl, as expected") in the
+PR description.
+
+---
+
+## Sandboxing External Code
+
+Any externally downloaded code used for testing must run in a sandboxed
+environment. Do not execute downloaded packages directly on the host machine.
+
+**Preferred (Docker):**
+```sh
+docker run --rm -p <host>:<container> node:22-alpine sh -c "npx -y <package>"
+```
+
+**Acceptable for official reference implementations:**
+Python venv in `testdata/` with pinned dependencies, no network access beyond
+localhost.
+
+Never run `npx -y <package>` or equivalent directly on the host without first
+reviewing the package source or running it in a container.
+
+---
+
+## What Not to Commit
+
+- Scan output files: `*.sarif`, `server.log`, `*.json` scan results (contain
+  local paths and machine-specific data).
+- The `.cursor/` directory (local IDE configuration).
+- The `ROADMAP.md` file (internal planning).
+- Any file containing real credentials, API keys, or tokens.
+- `dist/` goreleaser build output.
+
+---
+
+## Commit Style
+
+- Use conventional commit prefixes: `feat:`, `fix:`, `chore:`, `docs:`, `test:`
+- One logical change per commit.
+- Reference the rule ID in the commit message when adding or modifying a rule.
+- Sign off with `git commit -s` for all commits intended for the public repo.
+
+---
+
+## Getting Help
+
+Open a GitHub issue with the `question` label, or start a discussion in the
+Discussions tab. For security-sensitive matters, use the GitHub Security
+Advisories feature rather than opening a public issue.

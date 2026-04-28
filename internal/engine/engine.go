@@ -113,6 +113,16 @@ func resolveExecutor(r *rules.Rule) (attackpkg.Executor, error) {
 		return mcpattack.NewCORSWildcardExecutor(rc), nil
 	case "mcp-prompt-unauth":
 		return mcpattack.NewPromptUnauthExecutor(rc), nil
+	case "a2a-skill-poison":
+		return a2aattack.NewSkillPoisonExecutor(rc), nil
+	case "a2a-url-mismatch":
+		return a2aattack.NewURLMismatchExecutor(rc), nil
+	case "mcp-context-flood":
+		return mcpattack.NewContextFloodExecutor(rc), nil
+	case "mcp-tool-namespace":
+		return mcpattack.NewToolNamespaceExecutor(rc), nil
+	case "mcp-sse-hijack":
+		return mcpattack.NewSSEHijackExecutor(rc), nil
 	default:
 		return nil, fmt.Errorf("unknown attack type %q", r.Attack.Type)
 	}
