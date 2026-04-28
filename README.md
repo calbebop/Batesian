@@ -1,28 +1,25 @@
 # Batesian
 
-> **The adversarial red-team CLI for AI agent protocols.**
+> **Active adversarial security testing for AI agent protocols.**
 
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 [![Go Version](https://img.shields.io/badge/go-1.26+-00ADD8.svg)](https://golang.org)
 [![Build](https://github.com/calvin-mcdowell/batesian/actions/workflows/ci.yml/badge.svg)](https://github.com/calvin-mcdowell/batesian/actions)
 [![DCO](https://img.shields.io/badge/contributor%20agreement-DCO-blue.svg)](https://developercertificate.org)
 
-Every other tool in this space is a **scanner**: it connects to your agent and reads what's there. Batesian is an **attacker**. It impersonates malicious agent peers, abuses authentication flows, and sends crafted protocol payloads to find vulnerabilities that passive scanners never see.
+Batesian is a red-team CLI that sends crafted adversarial payloads against A2A and MCP protocol implementations to surface vulnerabilities that observation-only tools never reach: SSRF via push-notification callbacks, OAuth scope escalation through dynamic client registration, JWS algorithm confusion, cross-session context injection, and more.
+
+> **Authorized use only.** Only run Batesian against systems you own or have explicit written permission to test. Unauthorized use is illegal and unethical.
 
 ---
 
 ## Why Batesian exists
 
-The four major open-source agent security tools (Snyk agent-scan, cisco/a2a-scanner, cisco/mcp-scanner, antgroup/MCPScan) all share the same fundamental posture: they connect to a running server and *observe* what's there: reading tool descriptions, checking compliance, pattern-matching text. Not one of them:
+Most agent security tooling today takes an observational posture: connect to a running server, read what it exposes, check spec compliance, and pattern-match for known strings. That approach is genuinely useful and catches a real class of problems.
 
-- Sends a crafted, malicious protocol payload and tests how the target *responds*
-- Abuses the OAuth 2.1 / dynamic client registration flow to escalate privileges
-- Impersonates a peer agent to test A2A authentication
-- Tests what happens when a malicious callback URL is registered for push notifications
-- Produces SARIF output for GitHub Code Scanning integration
-- Runs without an external LLM API key or internet connection
+It leaves another class completely untested. Some vulnerabilities only surface when the system processes a crafted attack payload -- an abused OAuth registration flow, a push-notification callback pointed at an attacker-controlled host, a JWS signature stripped down to `"alg":"none"`. Passive inspection cannot reach these because they require the server to act, not just exist.
 
-Batesian fills every one of those gaps.
+Batesian is built for that second class. It does not replace observational scanning. It covers the ground that observational scanning structurally cannot.
 
 ---
 
@@ -33,27 +30,28 @@ Batesian fills every one of those gaps.
 | `a2a-push-ssrf-001` | Push Notification SSRF | A2A | Register a malicious callback URL; confirm the server makes an outbound request to an attacker-controlled host |
 | `a2a-extcard-unauth-001` | Extended Agent Card Disclosure | A2A | Probe `GET /extendedAgentCard` without authentication; detect privileged capability leakage |
 | `mcp-oauth-dcr-001` | OAuth DCR Scope Escalation | MCP | Abuse the dynamic client registration endpoint to request excessive scopes or hijack redirect URIs |
-| `a2a-jws-bypass-001` | JWS Algorithm Confusion | A2A | Send JWS assertions with `"alg":"none"` or RS256→HS256 confusion; detect missing signature validation |
-| `a2a-session-smuggling-001` | Agent Session Smuggling | A2A | Inject covert instructions into an ongoing A2A session by acting as a malicious peer agent |
+| `a2a-jws-algconf-001` | JWS Algorithm Confusion | A2A | Send JWS assertions with `"alg":"none"` or RS256 to HS256 confusion; detect missing signature validation |
+| `a2a-session-smuggle-001` | Agent Session Smuggling | A2A | Inject covert instructions into an ongoing A2A session by acting as a malicious peer agent |
 | `mcp-tool-poison-001` | Tool Poisoning Detection | MCP | Probe tool descriptions for embedded prompt injection and exfiltration instructions |
-| `a2a-json-rpc-fuzz-001` | JSON-RPC Protocol Fuzzing | A2A / MCP | Mutate JSON-RPC 2.0 messages to find type confusion, parser errors, and deserialization failures |
-| `mcp-token-replay-001` | OAuth Token Replay | MCP | Test whether tokens lack `aud` claim binding and can be replayed across endpoints |
+| `a2a-task-idor-001` | Task IDOR | A2A | Test whether unauthenticated sessions can retrieve task history belonging to other sessions |
+| `mcp-resources-unauth-001` | Unauthenticated Resource Read | MCP | Access MCP resources without credentials; detect exposed secrets or configuration data |
+| `mcp-sampling-inject-001` | Sampling Injection | MCP | Detect server-initiated `sampling/createMessage` requests embedding prompt injection |
+| `a2a-context-orphan-001` | Cross-Session Context Injection | A2A | Test whether a new session can inject into or read from a context owned by a different session |
 
 ## What makes Batesian different
 
-| | Batesian | Snyk agent-scan | cisco/a2a-scanner | cisco/mcp-scanner |
+|  | Batesian | Snyk agent-scan | cisco/a2a-scanner | cisco/mcp-scanner |
 |---|:---:|:---:|:---:|:---:|
-| Black-box (no source/config needed) | ✓ | ✗ | partial | partial |
 | Active adversarial probing | ✓ | ✗ | ✗ | ✗ |
 | OAuth / auth flow attack testing | ✓ | ✗ | ✗ | ✗ |
-| A2A protocol coverage | ✓ | ✗ | partial | ✗ |
+| A2A protocol coverage | ✓ | ✗ | ✓ | ✗ |
 | MCP protocol coverage | ✓ | ✓ | ✗ | ✓ |
-| Cross-protocol (A2A + MCP) session | ✓ | ✗ | ✗ | ✗ |
+| Cross-protocol (A2A + MCP) in one tool | ✓ | ✗ | ✗ | ✗ |
 | SARIF output (GitHub Code Scanning) | ✓ | ✗ | ✗ | ✗ |
-| No LLM API key required | ✓ | ✗ | ✗ | ✗ |
+| Runs without an LLM API key | ✓ | ✗ | partial | partial |
 | Air-gap / offline compatible | ✓ | ✗ | ✗ | ✗ |
-| Go single binary (no Python venv) | ✓ | ✗ | ✗ | ✗ |
-| Community-editable rule packs | ✓ | ✗ | partial | partial |
+| Single compiled binary | ✓ | ✗ | ✗ | ✗ |
+| YAML rule packs (no Go required) | ✓ | ✗ | ✗ | ✗ |
 
 ---
 
@@ -118,14 +116,7 @@ assert results.critical_count == 0
 
 ## Status
 
-🚧 **Early development.** Active construction. Star or watch this repo to follow progress.
-
-Immediate roadmap:
-- [ ] `probe` command: A2A Agent Card fetch and attack surface mapping
-- [ ] `a2a-push-ssrf-001`: first end-to-end working rule
-- [ ] `a2a-extcard-unauth-001`
-- [ ] `mcp-oauth-dcr-001`
-- [ ] SARIF 2.1.0 output format
+Early development. Active construction. Star or watch this repo to follow progress.
 
 ## Contributing
 
@@ -135,11 +126,11 @@ See [CONTRIBUTING.md](CONTRIBUTING.md). All contributors sign off commits with a
 
 ## References
 
-- [A2A Protocol Specification](https://a2aprotocol.ai/docs)
-- [MCP Security Specification](https://modelcontextprotocol.io/docs/concepts/security)
-- [Unit 42: Agent Session Smuggling in A2A Systems](https://unit42.paloaltonetworks.com/agent-session-smuggling-in-agent2agent-systems/) (Oct 2025)
-- [OWASP Agentic AI Top 10](https://genai.owasp.org)
-- [MCP OAuth 2.1 Authorization Spec](https://modelcontextprotocol.io/docs/concepts/authorization)
+- [A2A Protocol Specification](https://google.github.io/A2A/)
+- [MCP Authorization Specification](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization)
+- [MCP Security Best Practices](https://modelcontextprotocol.io/docs/tutorials/security/authorization)
+- [Unit 42: Agent Session Smuggling in A2A Systems](https://unit42.paloaltonetworks.com/agent-session-smuggling-in-agent2agent-systems/)
+- [OWASP GenAI Security Project](https://genai.owasp.org)
 
 ## License
 
