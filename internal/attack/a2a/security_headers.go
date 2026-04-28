@@ -3,7 +3,6 @@ package a2a
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"strings"
 
 	"github.com/calvin-mcdowell/batesian/internal/attack"
@@ -87,7 +86,7 @@ func (e *SecurityHeadersExecutor) Execute(ctx context.Context, target string, op
 		}
 		checked = true
 
-		headers := normalizeHeaders(resp.Headers)
+		headers := resp.NormalizeHeaders()
 		endpoint := vars.BaseURL + path
 
 		for _, hdr := range requiredA2AHeaders {
@@ -117,15 +116,6 @@ func (e *SecurityHeadersExecutor) Execute(ctx context.Context, target string, op
 		return nil, nil
 	}
 	return findings, nil
-}
-
-// normalizeHeaders returns a lowercase-keyed map from an http.Header.
-func normalizeHeaders(h http.Header) map[string]string {
-	out := make(map[string]string, len(h))
-	for k, v := range h {
-		out[strings.ToLower(k)] = strings.Join(v, ", ")
-	}
-	return out
 }
 
 // formatHeaders formats a header map as a human-readable string for evidence.

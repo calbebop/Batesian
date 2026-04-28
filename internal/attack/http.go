@@ -59,6 +59,16 @@ func (r *Response) IsSuccess() bool {
 	return r.StatusCode >= 200 && r.StatusCode < 300
 }
 
+// NormalizeHeaders returns a lowercase-keyed map of the response headers.
+// Multiple values for the same header are joined with ", ".
+func (r *Response) NormalizeHeaders() map[string]string {
+	out := make(map[string]string, len(r.Headers))
+	for k, v := range r.Headers {
+		out[strings.ToLower(k)] = strings.Join(v, ", ")
+	}
+	return out
+}
+
 // JSONField extracts a nested field from the response body using a dot-path.
 // Example: JSONField("scope") returns the "scope" value from a flat JSON object.
 // Returns empty string if the field is absent or the body is not valid JSON.

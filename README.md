@@ -150,14 +150,16 @@ assert:
 ```python
 from batesian import Scanner
 
-scanner = Scanner(target="http://localhost:8080")
-results = scanner.run(rules=["a2a/push-ssrf", "mcp/oauth-dcr", "a2a/extcard-unauth"])
+scanner = Scanner(target="https://agent.example.com")
+results = scanner.run(rules=["a2a-push-ssrf-001", "mcp-tool-poison-001"])
 
 for finding in results.findings:
-    print(f"[{finding.severity}] {finding.id}: {finding.description}")
+    print(f"[{finding.severity}] {finding.rule_id}: {finding.title}")
 
 assert results.critical_count == 0
 ```
+
+See [`sdk/python/`](sdk/python/) for installation, full API reference, and CI integration examples.
 
 ## Status
 

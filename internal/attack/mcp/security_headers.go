@@ -3,7 +3,6 @@ package mcp
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"strings"
 
 	"github.com/calvin-mcdowell/batesian/internal/attack"
@@ -94,7 +93,7 @@ func (e *MCPSecurityHeadersExecutor) Execute(ctx context.Context, target string,
 		}
 		checked = true
 
-		headers := mcpNormalizeHeaders(resp.Headers)
+		headers := resp.NormalizeHeaders()
 
 		for _, hdr := range requiredMCPHeaders {
 			if !hdr.check(headers) {
@@ -123,14 +122,6 @@ func (e *MCPSecurityHeadersExecutor) Execute(ctx context.Context, target string,
 		return nil, nil
 	}
 	return findings, nil
-}
-
-func mcpNormalizeHeaders(h http.Header) map[string]string {
-	out := make(map[string]string, len(h))
-	for k, v := range h {
-		out[strings.ToLower(k)] = strings.Join(v, ", ")
-	}
-	return out
 }
 
 func mcpFormatHeaders(h map[string]string) string {
