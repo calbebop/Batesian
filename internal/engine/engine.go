@@ -103,6 +103,16 @@ func resolveExecutor(r *rules.Rule) (attackpkg.Executor, error) {
 		return mcpattack.NewTokenReplayExecutor(rc), nil
 	case "a2a-json-rpc-fuzz":
 		return a2aattack.NewJSONRPCFuzzExecutor(rc), nil
+	case "a2a-wellknown-hostinject":
+		return a2aattack.NewWellKnownHostInjectExecutor(rc), nil
+	case "a2a-artifact-tamper":
+		return a2aattack.NewArtifactTamperExecutor(rc), nil
+	case "mcp-init-downgrade":
+		return mcpattack.NewInitDowngradeExecutor(rc), nil
+	case "mcp-cors-wildcard":
+		return mcpattack.NewCORSWildcardExecutor(rc), nil
+	case "mcp-prompt-unauth":
+		return mcpattack.NewPromptUnauthExecutor(rc), nil
 	default:
 		return nil, fmt.Errorf("unknown attack type %q", r.Attack.Type)
 	}

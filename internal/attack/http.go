@@ -103,6 +103,11 @@ func (c *HTTPClient) GET(ctx context.Context, urlTpl string, headers map[string]
 	return c.do(ctx, http.MethodGet, c.vars.Expand(urlTpl), nil, c.vars.ExpandMap(headers))
 }
 
+// OPTIONS sends an OPTIONS request (used for CORS preflight probes).
+func (c *HTTPClient) OPTIONS(ctx context.Context, urlTpl string, headers map[string]string) (*Response, error) {
+	return c.do(ctx, http.MethodOptions, c.vars.Expand(urlTpl), nil, c.vars.ExpandMap(headers))
+}
+
 // POST sends a POST request with a JSON body. body may be a map or struct.
 func (c *HTTPClient) POST(ctx context.Context, urlTpl string, headers map[string]string, body interface{}) (*Response, error) {
 	jsonBytes, err := marshalBody(body, c.vars)
