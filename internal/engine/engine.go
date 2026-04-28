@@ -86,6 +86,10 @@ func resolveExecutor(r *rules.Rule) (attackpkg.Executor, error) {
 		return a2aattack.NewTaskIDORExecutor(rc), nil
 	case "a2a-context-orphan":
 		return a2aattack.NewContextOrphanExecutor(rc), nil
+	case "a2a-peer-impersonation":
+		return a2aattack.NewPeerImpersonationExecutor(rc), nil
+	case "a2a-delegation-escalation":
+		return a2aattack.NewDelegationEscalationExecutor(rc), nil
 	// MCP attack types
 	case "oauth-dcr-scope-escalation":
 		return mcpattack.NewOAuthDCRExecutor(rc), nil
@@ -95,6 +99,10 @@ func resolveExecutor(r *rules.Rule) (attackpkg.Executor, error) {
 		return mcpattack.NewResourcesUnauthExecutor(rc), nil
 	case "mcp-sampling-inject":
 		return mcpattack.NewSamplingInjectExecutor(rc), nil
+	case "mcp-token-replay":
+		return mcpattack.NewTokenReplayExecutor(rc), nil
+	case "a2a-json-rpc-fuzz":
+		return a2aattack.NewJSONRPCFuzzExecutor(rc), nil
 	default:
 		return nil, fmt.Errorf("unknown attack type %q", r.Attack.Type)
 	}
