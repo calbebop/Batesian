@@ -330,6 +330,131 @@ func (p *Printer) printFinding(f attackpkg.Finding) {
 	fmt.Fprintln(p.w)
 }
 
+// MCPProbeResult holds the structured data from an MCP probe.
+type MCPProbeResult struct {
+	ServerName      string
+	ServerVersion   string
+	ServerTitle     string
+	URL             string
+	ProtocolVersion string
+	Elapsed         time.Duration
+
+	// Capabilities
+	HasTools     bool
+	HasResources bool
+	HasPrompts   bool
+	HasSampling  bool
+	HasLogging   bool
+
+	// Enumerated surface
+	Tools     []MCPToolSummary
+	Resources []MCPResourceSummary
+	Prompts   []MCPPromptSummary
+
+	// Attack surface flags
+	Flags []AttackFlag
+}
+
+// MCPToolSummary is a condensed view of an MCP tool.
+type MCPToolSummary struct {
+	Name        string
+	Description string
+}
+
+// MCPResourceSummary is a condensed view of an MCP resource.
+type MCPResourceSummary struct {
+	URI      string
+	MimeType string
+}
+
+// MCPPromptSummary is a condensed view of an MCP prompt template.
+type MCPPromptSummary struct {
+	Name      string
+	ArgCount  int
+	HasRequired bool
+}
+
+// PrintMCPProbeTable renders an MCP probe result to the terminal.
+func (p *Printer) PrintMCPProbeTable(r *MCPProbeResult) {
+	p.section("Server Identity")
+	tw := tabwriter.NewWriter(p.w, 0, 0, 2, ' ', 0)
+	name := r.ServerName
+	if r.ServerTitle != "" && r.ServerTitle != r.ServerName {
+		name = fmt.Sprintf("%s (%s)", r.ServerTitle, r.ServerName)
+	}
+	p.kvRow(tw, "Name", name)
+	p.kvRow(tw, "Version", r.ServerVersion)
+	p.kvRow(tw, "Protocol", r.ProtocolVersion)
+	p.kvRow(tw, "Endpoint", r.URL)
+	p.kvRow(tw, "Response time", r.Elapsed.Round(time.Millisecond).String())
+	tw.Flush()
+
+	fmt.Fprintln(p.w)
+	p.section("Capabilities")
+	tw = tabwriter.NewWriter(p.w, 0, 0, 2, ' ', 0)
+	p.kvRow(tw, "Tools", boolDisplay(r.HasTools))
+	p.kvRow(tw, "Resources", boolDisplay(r.HasResources))
+	p.kvRow(tw, "Prompts", boolDisplay(r.HasPrompts))
+	p.kvRow(tw, "Sampling", boolDisplay(r.HasSampling))
+	p.kvRow(tw, "Logging", boolDisplay(r.HasLogging))
+	tw.Flush()
+
+	if len(r.Tools) > 0 {
+		fmt.Fprintln(p.w)
+		p.section(fmt.Sprintf("Tools (%d)", len(r.Tools)))
+		tw = tabwriter.NewWriter(p.w, 0, 0, 2, ' ', 0)
+		fmt.Fprintf(tw, "  %s\t%s\n", Dim("Name"), Dim("Description"))
+		fmt.Fprintf(tw, "  %s\t%s\n", Dim("----"), Dim("-----------"))
+		for _, t := range r.Tools {
+			fmt.Fprintf(tw, "  %s\t%s\n", t.Name, truncate(t.Description, 70))
+		}
+		tw.Flush()
+	}
+
+	if len(r.Resources) > 0 {
+		fmt.Fprintln(p.w)
+		p.section(fmt.Sprintf("Resources (%d)", len(r.Resources)))
+		tw = tabwriter.NewWriter(p.w, 0, 0, 2, ' ', 0)
+		fmt.Fprintf(tw, "  %s\t%s\n", Dim("URI"), Dim("MIME"))
+		fmt.Fprintf(tw, "  %s\t%s\n", Dim("---"), Dim("----"))
+		for _, r := range r.Resources {
+			fmt.Fprintf(tw, "  %s\t%s\n", r.URI, r.MimeType)
+		}
+		tw.Flush()
+	}
+
+	if len(r.Prompts) > 0 {
+		fmt.Fprintln(p.w)
+		p.section(fmt.Sprintf("Prompt Templates (%d)", len(r.Prompts)))
+		tw = tabwriter.NewWriter(p.w, 0, 0, 2, ' ', 0)
+		fmt.Fprintf(tw, "  %s\t%s\n", Dim("Name"), Dim("Args"))
+		fmt.Fprintf(tw, "  %s\t%s\n", Dim("----"), Dim("----"))
+		for _, pr := range r.Prompts {
+			req := ""
+			if pr.HasRequired {
+				req = " (required)"
+			}
+			fmt.Fprintf(tw, "  %s\t%d%s\n", pr.Name, pr.ArgCount, req)
+		}
+		tw.Flush()
+	}
+
+	if len(r.Flags) > 0 {
+		fmt.Fprintln(p.w)
+		p.section("Attack Surface")
+		for _, f := range r.Flags {
+			icon, label := severityDisplay(f.Severity)
+			fmt.Fprintf(p.w, "  %s %s  %s  %s\n",
+				icon, label, Dim(f.RuleID), f.Message,
+			)
+		}
+	}
+
+	fmt.Fprintln(p.w)
+}
+
+// printFinding renders a single finding to the terminal (evidence shown in verbose mode).
+
 func truncate(s string, max int) string {
 	s = strings.ReplaceAll(s, "\n", " ")
 	if len(s) <= max {

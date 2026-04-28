@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/calvin-mcdowell/batesian/internal/protocol/a2a"
+	"github.com/calvin-mcdowell/batesian/internal/protocol/mcp"
 	"github.com/calvin-mcdowell/batesian/internal/report"
 	"github.com/spf13/cobra"
 )
@@ -22,11 +23,19 @@ For A2A targets, probe fetches the Agent Card, validates its structure,
 discovers capabilities and authentication requirements, and flags
 attack surface areas for follow-up with the scan command.
 
+For MCP targets, probe runs the initialize handshake then enumerates
+all tools, resources, and prompt templates exposed by the server.
+
 Inline checks performed during probe:
-  - extendedAgentCard unauthenticated access (a2a-extcard-unauth-001)
-  - push notification capability presence (a2a-push-ssrf-001 precondition)`,
+  A2A: extendedAgentCard unauthenticated access (a2a-extcard-unauth-001)
+       push notification capability presence (a2a-push-ssrf-001)
+  MCP: unauthenticated resources/list access (mcp-resources-unauth-001)
+       sampling capability present (mcp-sampling-inject-001)`,
 	Example: `  # Probe an A2A agent
   batesian probe --target https://agent.example.com
+
+  # Probe an MCP server
+  batesian probe --target http://localhost:3001 --protocol mcp
 
   # Probe with JSON output
   batesian probe --target https://agent.example.com --output json
@@ -70,7 +79,7 @@ func runProbe(cmd *cobra.Command, args []string) error {
 	case "a2a":
 		return probeA2A(target, token, timeoutSecs, skipTLS, format, printer)
 	case "mcp":
-		return fmt.Errorf("MCP probe not yet implemented; use --protocol a2a")
+		return probeMCP(target, token, timeoutSecs, skipTLS, format, printer)
 	default:
 		return fmt.Errorf("unknown protocol %q; supported: a2a, mcp", protocol)
 	}
@@ -194,6 +203,138 @@ func cardToProbeResult(card *a2a.AgentCard, elapsed time.Duration) *report.Probe
 	}
 
 	return r
+}
+
+func probeMCP(target, token string, timeoutSecs int, skipTLS bool, format report.Format, printer *report.Printer) error {
+	opts := []mcp.ClientOption{
+		mcp.WithTimeout(time.Duration(timeoutSecs) * time.Second),
+	}
+	if skipTLS {
+		opts = append(opts, mcp.WithSkipTLSVerify())
+	}
+
+	client, err := mcp.NewClient(target, opts...)
+	if err != nil {
+		return err
+	}
+
+	printer.ProbeHeader(target, "mcp")
+	ctx := context.Background()
+
+	printer.Verbose("POST " + target + "/mcp (initialize)")
+	start := time.Now()
+	session, err := client.Initialize(ctx)
+	elapsed := time.Since(start)
+	if err != nil {
+		printer.Error("MCP initialize failed: " + err.Error())
+		return fmt.Errorf("could not connect to MCP server: %w", err)
+	}
+	printer.Success(fmt.Sprintf("MCP server connected (%s)", elapsed.Round(time.Millisecond)))
+
+	result := &report.MCPProbeResult{
+		ServerName:      session.ServerInfo.Name,
+		ServerVersion:   session.ServerInfo.Version,
+		ServerTitle:     session.ServerInfo.Title,
+		URL:             session.Endpoint,
+		ProtocolVersion: session.ProtocolVersion,
+		Elapsed:         elapsed,
+		HasTools:        session.HasCapability("tools"),
+		HasResources:    session.HasCapability("resources"),
+		HasPrompts:      session.HasCapability("prompts"),
+		HasSampling:     session.HasCapability("sampling"),
+		HasLogging:      session.HasCapability("logging"),
+	}
+
+	// Enumerate tools
+	if result.HasTools {
+		printer.Verbose("tools/list")
+		tools, err := client.ListTools(ctx, session)
+		if err == nil {
+			for _, t := range tools {
+				result.Tools = append(result.Tools, report.MCPToolSummary{
+					Name:        t.Name,
+					Description: t.Description,
+				})
+			}
+		}
+	}
+
+	// Enumerate resources (and flag unauthenticated access)
+	if result.HasResources {
+		printer.Verbose("resources/list")
+		resources, err := client.ListResources(ctx, session)
+		if err == nil && len(resources) > 0 {
+			for _, r := range resources {
+				result.Resources = append(result.Resources, report.MCPResourceSummary{
+					URI:      r.URI,
+					MimeType: r.MimeType,
+				})
+			}
+			// No auth was used; resources returned — flag it
+			result.Flags = append(result.Flags, report.AttackFlag{
+				Severity: "high",
+				RuleID:   "mcp-resources-unauth-001",
+				Message:  fmt.Sprintf("%d resource(s) listed without authentication. Run scan to read content.", len(resources)),
+			})
+		}
+	}
+
+	// Enumerate prompts
+	if result.HasPrompts {
+		printer.Verbose("prompts/list")
+		prompts, err := client.ListPrompts(ctx, session)
+		if err == nil {
+			for _, p := range prompts {
+				hasReq := false
+				for _, a := range p.Arguments {
+					if a.Required {
+						hasReq = true
+						break
+					}
+				}
+				result.Prompts = append(result.Prompts, report.MCPPromptSummary{
+					Name:        p.Name,
+					ArgCount:    len(p.Arguments),
+					HasRequired: hasReq,
+				})
+			}
+		}
+	}
+
+	// Flag sampling capability for manual audit
+	if result.HasSampling {
+		result.Flags = append(result.Flags, report.AttackFlag{
+			Severity: "medium",
+			RuleID:   "mcp-sampling-inject-001",
+			Message:  "Server advertises sampling capability. Run scan to check for prompt injection via createMessage.",
+		})
+	}
+
+	// Flag tools for scan follow-up
+	if len(result.Tools) > 0 {
+		result.Flags = append(result.Flags, report.AttackFlag{
+			Severity: "info",
+			RuleID:   "mcp-tool-poison-001",
+			Message:  fmt.Sprintf("%d tool(s) exposed. Run scan to check descriptions for injection patterns.", len(result.Tools)),
+		})
+	}
+
+	// No auth on any request: flag for token replay / OAuth probe
+	if token == "" {
+		result.Flags = append(result.Flags, report.AttackFlag{
+			Severity: "info",
+			RuleID:   "mcp-oauth-dcr-001",
+			Message:  "No authentication used. Run scan to check OAuth DCR and token validation.",
+		})
+	}
+
+	switch format {
+	case report.FormatJSON:
+		return printer.PrintJSON(result)
+	default:
+		printer.PrintMCPProbeTable(result)
+	}
+	return nil
 }
 
 // buildJSONOutput creates the JSON representation of a probe result.
