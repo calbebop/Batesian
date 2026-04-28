@@ -51,6 +51,12 @@ Batesian is built for that second class. It does not replace observational scann
 | `mcp-context-flood-001` | Context Window Flooding | MCP | Submit 1MB and 5MB tool call arguments; detect missing payload size limits |
 | `mcp-tool-namespace-001` | Tool Namespace Collision | MCP | Connect twice with independent sessions; detect tool description changes between sessions (rug pull precondition) |
 | `mcp-sse-hijack-001` | Unauthenticated SSE Stream | MCP | Probe MCP SSE endpoints without credentials; detect streams that accept connections without authentication |
+| `a2a-tls-downgrade-001` | TLS Downgrade | A2A | Probe A2A card and RPC endpoints over plain HTTP; detect missing HTTPS enforcement |
+| `mcp-init-instructions-inject-001` | Server Instructions Injection | MCP | Score `serverInfo.instructions` from the MCP initialize response for prompt injection patterns |
+| `a2a-capability-inflation-001` | Capability Inflation | A2A | Send `tasks/send` with undeclared elevated permissions in `configuration`; detect silent acceptance |
+| `mcp-ratelimit-absent-001` | Missing Rate Limiting | MCP | Send a 25-request burst; detect servers with no HTTP 429 or throttle response |
+| `mcp-homoglyph-tool-001` | Tool Name Homoglyph | MCP | Call `tools/call` with Cyrillic homoglyph substitutions in the tool name; detect missing identity normalization |
+| `mcp-injection-params-001` | Tool Parameter Injection | MCP | Inject SQL, command, path traversal, and XSS payloads as tool arguments; detect error leakage or command execution |
 
 ## What makes Batesian different
 
@@ -58,8 +64,8 @@ Batesian is built for that second class. It does not replace observational scann
 |---|:---:|:---:|:---:|:---:|
 | **Approach** | Active red-team | Passive supply-chain scan | Passive static + light endpoint | Passive YARA / LLM / behavioral |
 | Active adversarial probing (sends attack payloads) | ✓ | ✗ | ✗ | ✗ |
-| A2A active attack rules | 13 | 0 | 0 | 0 |
-| MCP active attack rules | 11 | 0 | 0 | 0 |
+| A2A active attack rules | 16 | 0 | 0 | 0 |
+| MCP active attack rules | 14 | 0 | 0 | 0 |
 | OOB / blind SSRF detection | ✓ | ✗ | ✗ | ✗ |
 | Cryptographic attack testing (JWS alg confusion) | ✓ | ✗ | ✗ | ✗ |
 | OAuth flow attack testing (DCR scope escalation) | ✓ | ✗ | ✗ | ✗ |
@@ -89,7 +95,20 @@ batesian probe --target https://agent.example.com --protocol a2a
 batesian scan --target https://agent.example.com --output sarif > results.sarif
 
 # Run specific rules only
-batesian scan --target https://agent.example.com --rules rules/a2a/push-ssrf-001.yaml
+batesian scan --target https://agent.example.com --rule-ids a2a-push-ssrf-001,mcp-tool-poison-001
+
+# Scan an authenticated MCP endpoint (static token)
+batesian scan --target https://mcp.example.com --token "$TOKEN"
+
+# Scan with automatic OAuth 2.0 client credentials token acquisition
+batesian scan --target https://mcp.example.com \
+  --token-url https://auth.example.com/oauth/token \
+  --client-id my-client \
+  --client-secret "$CLIENT_SECRET" \
+  --oauth-scopes mcp:read,mcp:write
+
+# Generate an annotated batesian.yaml config file
+batesian init
 ```
 
 ## Rule packs

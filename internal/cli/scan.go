@@ -8,6 +8,8 @@ import (
 
 	batesian "github.com/calvin-mcdowell/batesian"
 	attackpkg "github.com/calvin-mcdowell/batesian/internal/attack"
+	"github.com/calvin-mcdowell/batesian/internal/auth"
+	"github.com/calvin-mcdowell/batesian/internal/config"
 	"github.com/calvin-mcdowell/batesian/internal/engine"
 	"github.com/calvin-mcdowell/batesian/internal/report"
 	"github.com/calvin-mcdowell/batesian/internal/rules"
@@ -53,10 +55,25 @@ func init() {
 	scanCmd.Flags().Bool("skip-tls", false, "Skip TLS certificate verification")
 	scanCmd.Flags().Bool("oob", false, "Enable local OOB listener for SSRF callback detection")
 	scanCmd.Flags().String("oob-url", "", "External OOB server URL (overrides --oob local listener)")
+	scanCmd.Flags().String("config", "", "Path to batesian.yaml config file (default: auto-discover)")
+	// OAuth 2.0 flags for automatic token acquisition.
+	scanCmd.Flags().String("token-url", "", "OAuth 2.0 token endpoint URL for client credentials flow")
+	scanCmd.Flags().String("client-id", "", "OAuth 2.0 client ID (used with --token-url)")
+	scanCmd.Flags().String("client-secret", "", "OAuth 2.0 client secret (used with --token-url)")
+	scanCmd.Flags().StringSlice("oauth-scopes", nil, "OAuth 2.0 scopes to request (comma-separated)")
+	scanCmd.Flags().String("oauth-audience", "", "OAuth 2.0 audience (used with --token-url; for Auth0/Okta)")
 	rootCmd.AddCommand(scanCmd)
 }
 
 func runScan(cmd *cobra.Command, args []string) error {
+	// Load config file first; CLI flags override config values.
+	configPath, _ := cmd.Flags().GetString("config")
+	cfg, cfgErr := config.Load(configPath)
+	if cfgErr != nil {
+		fmt.Fprintf(os.Stderr, "warning: could not load config file: %v\n", cfgErr)
+		cfg = &config.Config{}
+	}
+
 	target, _ := cmd.Flags().GetString("target")
 	outputFmt, _ := cmd.Flags().GetString("output")
 	verbose, _ := cmd.Flags().GetBool("verbose")
@@ -71,8 +88,64 @@ func runScan(cmd *cobra.Command, args []string) error {
 	oobEnabled, _ := cmd.Flags().GetBool("oob")
 	oobURL, _ := cmd.Flags().GetString("oob-url")
 
+	// Apply config file defaults for unset flags.
+	if target == "" {
+		target = cfg.Target
+	}
+	if outputFmt == "" {
+		outputFmt = cfg.Output
+	}
+	if protocol == "" {
+		protocol = cfg.Protocol
+	}
+	if len(ruleIDs) == 0 {
+		ruleIDs = cfg.RuleIDs
+	}
+	if len(severities) == 0 {
+		severities = cfg.Severities
+	}
+	if len(tags) == 0 {
+		tags = cfg.Tags
+	}
+	if rulesDir == "" {
+		rulesDir = cfg.RulesDir
+	}
+	if token == "" {
+		// Also check environment variable BATESIAN_TOKEN.
+		token = firstNonEmpty(cfg.Token, os.Getenv("BATESIAN_TOKEN"))
+	}
+	if timeoutSecs == 10 && cfg.TimeoutSeconds > 0 {
+		timeoutSecs = cfg.TimeoutSeconds
+	}
+	if !skipTLS {
+		skipTLS = cfg.SkipTLS
+	}
+	if !oobEnabled {
+		oobEnabled = cfg.OOB
+	}
+	if oobURL == "" {
+		oobURL = cfg.OOBURL
+	}
+
 	if target == "" {
 		return fmt.Errorf("--target is required")
+	}
+
+	// If OAuth flags are provided and no token is set, acquire one automatically.
+	if token == "" {
+		tokenURL, _ := cmd.Flags().GetString("token-url")
+		clientID, _ := cmd.Flags().GetString("client-id")
+		clientSecret, _ := cmd.Flags().GetString("client-secret")
+		oauthScopes, _ := cmd.Flags().GetStringSlice("oauth-scopes")
+		oauthAudience, _ := cmd.Flags().GetString("oauth-audience")
+
+		if clientID != "" && tokenURL != "" {
+			tok, err := fetchOAuthToken(context.Background(), tokenURL, clientID, clientSecret, oauthScopes, oauthAudience)
+			if err != nil {
+				return fmt.Errorf("OAuth token acquisition failed: %w", err)
+			}
+			token = tok
+		}
 	}
 
 	format := report.ParseFormat(outputFmt)
@@ -183,6 +256,31 @@ func splitProtocols(p string) []string {
 		return nil
 	}
 	return strings.Split(strings.ToLower(p), ",")
+}
+
+// firstNonEmpty returns the first non-empty string from the arguments.
+func firstNonEmpty(vals ...string) string {
+	for _, v := range vals {
+		if v != "" {
+			return v
+		}
+	}
+	return ""
+}
+
+// fetchOAuthToken acquires a bearer token via client credentials grant.
+func fetchOAuthToken(ctx context.Context, tokenURL, clientID, clientSecret string, scopes []string, audience string) (string, error) {
+	tok, err := auth.FetchClientCredentialsToken(ctx, auth.ClientCredentialsConfig{
+		TokenURL:     tokenURL,
+		ClientID:     clientID,
+		ClientSecret: clientSecret,
+		Scopes:       scopes,
+		Audience:     audience,
+	})
+	if err != nil {
+		return "", err
+	}
+	return tok.AccessToken, nil
 }
 
 // buildScanJSON creates the JSON representation of scan results.

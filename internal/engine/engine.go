@@ -123,6 +123,18 @@ func resolveExecutor(r *rules.Rule) (attackpkg.Executor, error) {
 		return mcpattack.NewToolNamespaceExecutor(rc), nil
 	case "mcp-sse-hijack":
 		return mcpattack.NewSSEHijackExecutor(rc), nil
+	case "a2a-tls-downgrade":
+		return a2aattack.NewTLSDowngradeExecutor(rc), nil
+	case "mcp-init-instructions-inject":
+		return mcpattack.NewInitInstructionsInjectExecutor(rc), nil
+	case "a2a-capability-inflation":
+		return a2aattack.NewCapabilityInflationExecutor(rc), nil
+	case "mcp-ratelimit-absent":
+		return mcpattack.NewRateLimitAbsentExecutor(rc), nil
+	case "mcp-homoglyph-tool":
+		return mcpattack.NewHomoglyphToolExecutor(rc), nil
+	case "mcp-injection-params":
+		return mcpattack.NewInjectionParamsExecutor(rc), nil
 	default:
 		return nil, fmt.Errorf("unknown attack type %q", r.Attack.Type)
 	}
