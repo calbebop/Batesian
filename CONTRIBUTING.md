@@ -193,17 +193,6 @@ PR description.
 
 ---
 
-## What Not to Commit
-
-- Scan output files: `*.sarif`, `server.log`, `*.json` scan results (contain
-  local paths and machine-specific data).
-- The `.cursor/` directory (local IDE configuration).
-- The `ROADMAP.md` file (internal planning).
-- Any file containing real credentials, API keys, or tokens.
-- `dist/` goreleaser build output.
-
----
-
 ## Commit Style
 
 - Use conventional commit prefixes: `feat:`, `fix:`, `chore:`, `docs:`, `test:`
