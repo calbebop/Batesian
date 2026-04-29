@@ -36,12 +36,30 @@ class Scanner:
         OAuth 2.0 scopes to request (used with ``token_url``).
     oauth_audience:
         OAuth 2.0 audience identifier (Auth0/Okta-style; used with ``token_url``).
+    auth_url:
+        OAuth 2.0 authorization endpoint URL. Setting this enables the
+        interactive PKCE authorization-code flow in the underlying CLI.
+        The CLI still drives the browser callback; the SDK only forwards
+        the flag.
+    redirect_port:
+        Local TCP port for the OAuth callback listener used by PKCE
+        (default: ``9876`` in the CLI). Pass an explicit port if the
+        default is taken or if you have a fixed redirect URI registered
+        with the IdP.
+    no_browser:
+        When True, the CLI prints the authorization URL instead of
+        attempting to auto-open a browser. Useful for headless or CI
+        environments where the browser cannot be launched.
     timeout:
         Per-request HTTP timeout in seconds (default: 10).
     skip_tls:
         Skip TLS certificate verification. Not recommended for production.
     config:
         Path to a ``batesian.yaml`` config file.
+    verbose:
+        Enable verbose CLI output (forwarded as ``-v`` to the binary).
+        Verbose output is written to stderr and does not affect the JSON
+        results returned by ``run()`` / ``probe()``.
     """
 
     def __init__(
@@ -55,9 +73,13 @@ class Scanner:
         client_secret: Optional[str] = None,
         oauth_scopes: Optional[List[str]] = None,
         oauth_audience: Optional[str] = None,
+        auth_url: Optional[str] = None,
+        redirect_port: Optional[int] = None,
+        no_browser: bool = False,
         timeout: int = 10,
         skip_tls: bool = False,
         config: Optional[str] = None,
+        verbose: bool = False,
     ) -> None:
         self.target = target
         self.binary = find_binary(binary_path)
@@ -67,9 +89,13 @@ class Scanner:
         self.client_secret = client_secret
         self.oauth_scopes = oauth_scopes or []
         self.oauth_audience = oauth_audience
+        self.auth_url = auth_url
+        self.redirect_port = redirect_port
+        self.no_browser = no_browser
         self.timeout = timeout
         self.skip_tls = skip_tls
         self.config = config
+        self.verbose = verbose
 
     def run(
         self,
@@ -187,6 +213,8 @@ class Scanner:
             cmd.append("--skip-tls")
         if self.config:
             cmd += ["--config", self.config]
+        if self.verbose:
+            cmd.append("-v")
 
         try:
             proc = subprocess.run(
@@ -259,10 +287,18 @@ class Scanner:
             cmd += ["--oauth-scopes", ",".join(self.oauth_scopes)]
         if self.oauth_audience:
             cmd += ["--oauth-audience", self.oauth_audience]
+        if self.auth_url:
+            cmd += ["--auth-url", self.auth_url]
+        if self.redirect_port is not None:
+            cmd += ["--redirect-port", str(self.redirect_port)]
+        if self.no_browser:
+            cmd.append("--no-browser")
         if self.skip_tls:
             cmd.append("--skip-tls")
         if self.config:
             cmd += ["--config", self.config]
+        if self.verbose:
+            cmd.append("-v")
         if oob_url:
             cmd += ["--oob-url", oob_url]
         elif oob:
