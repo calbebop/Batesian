@@ -23,6 +23,8 @@ info:
     - https://modelcontextprotocol.io/specification/2025-03-26/client/sampling
     - https://modelcontextprotocol.io/specification/2025-03-26/basic/capabilities
     - https://owasp.org/www-project-top-ten/2021/A03_2021-Injection
+    - https://cwe.mitre.org/data/definitions/20.html
+    - https://cwe.mitre.org/data/definitions/77.html
 
   tags:
     - mcp
@@ -30,6 +32,8 @@ info:
     - prompt-injection
     - llm
     - owasp-agentic-top10
+    - cwe-20
+    - cwe-77
 
 attack:
   protocol: mcp

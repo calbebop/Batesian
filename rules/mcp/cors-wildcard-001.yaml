@@ -25,12 +25,16 @@ info:
     - https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS
     - https://portswigger.net/web-security/cors
     - https://owasp.org/www-community/attacks/CORS_OriginHeaderScrutiny
+    - https://cwe.mitre.org/data/definitions/942.html
+    - https://cwe.mitre.org/data/definitions/346.html
 
   tags:
     - mcp
     - cors
     - misconfiguration
     - browser-attack
+    - cwe-942
+    - cwe-346
 
 attack:
   protocol: mcp

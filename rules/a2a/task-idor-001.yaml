@@ -18,6 +18,7 @@ info:
   references:
     - https://a2aprotocol.ai/docs/specification#tasks
     - https://owasp.org/www-project-top-ten/2021/A01_2021-Broken_Access_Control
+    - https://cwe.mitre.org/data/definitions/639.html
 
   tags:
     - a2a
@@ -25,6 +26,7 @@ info:
     - authorization
     - task
     - owasp-agentic-top10
+    - cwe-639
 
 attack:
   protocol: a2a

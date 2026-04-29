@@ -32,6 +32,8 @@ info:
     - https://modelcontextprotocol.io/docs/concepts/tools
     - https://owasp.org/www-project-web-security-testing-guide/
     - https://owasp.org/www-project-top-10-for-large-language-model-applications/
+    - https://cwe.mitre.org/data/definitions/77.html
+    - https://cwe.mitre.org/data/definitions/94.html
 
   tags:
     - mcp
@@ -40,6 +42,8 @@ info:
     - command-injection
     - xss
     - tool
+    - cwe-77
+    - cwe-94
 
 attack:
   protocol: mcp

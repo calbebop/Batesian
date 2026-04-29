@@ -28,12 +28,14 @@ info:
   references:
     - https://google.github.io/A2A/specification/
     - https://portswigger.net/research/practical-http-header-smuggling
+    - https://cwe.mitre.org/data/definitions/345.html
 
   tags:
     - a2a
     - agent-card
     - misconfiguration
     - typosquatting
+    - cwe-345
 
 attack:
   protocol: a2a

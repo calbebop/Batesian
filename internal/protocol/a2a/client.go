@@ -2,6 +2,7 @@ package a2a
 
 import (
 	"context"
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -81,7 +82,10 @@ func NewClient(baseURL string, opts ...ClientOption) (*Client, error) {
 	base := strings.TrimRight(u.String(), "/")
 
 	c := &Client{
-		http:    &http.Client{Timeout: defaultTimeout},
+		http: &http.Client{
+			Timeout:   defaultTimeout,
+			Transport: &http.Transport{TLSClientConfig: &tls.Config{}}, //nolint:gosec
+		},
 		baseURL: base,
 		headers: map[string]string{
 			"User-Agent": "batesian/dev (https://github.com/calvin-mcdowell/batesian)",

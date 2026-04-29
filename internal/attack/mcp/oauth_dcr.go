@@ -27,8 +27,11 @@ func NewOAuthDCRExecutor(r attack.RuleContext) *OAuthDCRExecutor {
 }
 
 var (
-	// adminScopes are high-value scopes that a legitimate read-only client should not receive.
-	adminScopes = []string{"admin", "tools:write", "resources:write", "write", "openid", "profile", "email"}
+	// adminScopes are MCP-specific high-privilege scopes that should not be granted to
+	// a read-only client. Standard OIDC scopes (openid, profile, email) are intentionally
+	// excluded because many authorization servers grant them by default and they do not
+	// imply privilege escalation in the MCP context.
+	adminScopes = []string{"admin", "tools:write", "resources:write", "prompts:write", "write", "superuser", "root"}
 
 	// maliciousRedirects are redirect URIs that should be rejected by a compliant server.
 	maliciousRedirects = []string{

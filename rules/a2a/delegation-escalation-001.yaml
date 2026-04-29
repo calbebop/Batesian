@@ -28,6 +28,7 @@ info:
     - https://a2aprotocol.ai/docs/specification#task-delegation
     - https://owasp.org/www-project-top-ten/2021/A01_2021-Broken_Access_Control
     - https://owasp.org/www-project-agentic-security-risks/
+    - https://cwe.mitre.org/data/definitions/269.html
 
   tags:
     - a2a
@@ -36,6 +37,7 @@ info:
     - injection
     - authorization
     - owasp-agentic-top10
+    - cwe-269
 
 attack:
   protocol: a2a

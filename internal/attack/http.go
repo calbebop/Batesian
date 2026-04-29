@@ -19,6 +19,7 @@ const maxBody = 1 << 20 // 1 MB
 type HTTPClient struct {
 	inner *http.Client
 	vars  Vars
+	token string // bearer token injected into every request when set
 }
 
 // NewHTTPClient creates an attack HTTP client.
@@ -36,7 +37,8 @@ func NewHTTPClient(opts Options, vars Vars) *HTTPClient {
 			Timeout:   timeout,
 			Transport: transport,
 		},
-		vars: vars,
+		vars:  vars,
+		token: opts.Token,
 	}
 }
 
@@ -140,6 +142,10 @@ func (c *HTTPClient) do(ctx context.Context, method, url string, body io.Reader,
 	req.Header.Set("User-Agent", "batesian/dev (https://github.com/calvin-mcdowell/batesian)")
 	// MCP streamable HTTP requires text/event-stream in Accept; A2A servers ignore it.
 	req.Header.Set("Accept", "application/json, text/event-stream")
+	// Inject the bearer token unless the caller overrides Authorization explicitly.
+	if c.token != "" {
+		req.Header.Set("Authorization", "Bearer "+c.token)
+	}
 	for k, v := range headers {
 		req.Header.Set(k, v)
 	}
@@ -190,6 +196,9 @@ func readFirstSSEEvent(r io.Reader) []byte {
 			return []byte(payload)
 		}
 	}
+	// scanner.Err() is nil on clean EOF; non-nil means a read or buffer error.
+	// Returning nil here is safe: callers treat empty body as "no result".
+	_ = scanner.Err()
 	return nil
 }
 

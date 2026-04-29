@@ -67,8 +67,8 @@ func TestRateLimitAbsent_NoThrottling(t *testing.T) {
 	if len(findings) == 0 {
 		t.Fatal("expected finding when server accepts all burst requests without throttling")
 	}
-	if findings[0].Confidence != attack.ConfirmedExploit {
-		t.Errorf("expected ConfirmedExploit, got %v", findings[0].Confidence)
+	if findings[0].Confidence != attack.RiskIndicator {
+		t.Errorf("expected RiskIndicator, got %v", findings[0].Confidence)
 	}
 }
 

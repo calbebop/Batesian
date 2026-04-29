@@ -17,6 +17,7 @@ info:
     - https://github.com/google-a2a/a2a-python/issues/786
     - https://a2aprotocol.ai/docs/specification#push-notifications
     - https://owasp.org/www-community/attacks/Server_Side_Request_Forgery
+    - https://cwe.mitre.org/data/definitions/918.html
 
   tags:
     - a2a
@@ -24,6 +25,7 @@ info:
     - push-notification
     - oob
     - owasp-agentic-top10
+    - cwe-918
 
 attack:
   protocol: a2a

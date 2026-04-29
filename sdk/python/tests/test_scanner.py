@@ -165,6 +165,74 @@ class TestScannerRun:
         assert "read,write" in cmd
 
 
+    def test_raises_scan_error_on_nonzero_exit(self, scanner):
+        """Non-zero returncode with valid JSON must still raise ScanError."""
+        with patch("subprocess.run", return_value=_mock_proc(returncode=1, stderr="internal error")):
+            with pytest.raises(ScanError, match="exited with code 1"):
+                scanner.run()
+
+    def test_passes_tags_to_cli(self, scanner):
+        with patch("subprocess.run", return_value=_mock_proc()) as mock_run:
+            scanner.run(tags=["injection", "auth"])
+        cmd = mock_run.call_args[0][0]
+        assert "--tags" in cmd
+        assert "injection,auth" in cmd
+
+    def test_passes_rules_dir(self, scanner):
+        with patch("subprocess.run", return_value=_mock_proc()) as mock_run:
+            scanner.run(rules_dir="/custom/rules")
+        cmd = mock_run.call_args[0][0]
+        assert "--rules-dir" in cmd
+        assert "/custom/rules" in cmd
+
+
+class TestScannerProbe:
+    def _probe_output(self):
+        return json.dumps({"name": "Test Agent", "url": "https://agent.example.com", "flags": []})
+
+    def test_probe_returns_dict(self):
+        with patch("batesian._scanner.find_binary", return_value="/fake/batesian"):
+            s = Scanner(target="https://agent.example.com")
+        output = self._probe_output()
+        with patch("subprocess.run", return_value=_mock_proc(stdout=output)):
+            result = s.probe()
+        assert isinstance(result, dict)
+        assert result["name"] == "Test Agent"
+
+    def test_probe_passes_protocol(self):
+        with patch("batesian._scanner.find_binary", return_value="/fake/batesian"):
+            s = Scanner(target="https://agent.example.com")
+        with patch("subprocess.run", return_value=_mock_proc(stdout=self._probe_output())) as mock_run:
+            s.probe(protocol="mcp")
+        cmd = mock_run.call_args[0][0]
+        assert "probe" in cmd
+        assert "--protocol" in cmd
+        assert "mcp" in cmd
+
+    def test_probe_raises_on_empty_output(self):
+        with patch("batesian._scanner.find_binary", return_value="/fake/batesian"):
+            s = Scanner(target="https://agent.example.com")
+        with patch("subprocess.run", return_value=_mock_proc(stdout="")):
+            with pytest.raises(ScanError, match="no output"):
+                s.probe()
+
+    def test_probe_raises_on_nonzero_exit(self):
+        with patch("batesian._scanner.find_binary", return_value="/fake/batesian"):
+            s = Scanner(target="https://agent.example.com")
+        with patch("subprocess.run", return_value=_mock_proc(stdout=self._probe_output(), returncode=1)):
+            with pytest.raises(ScanError, match="exited with code 1"):
+                s.probe()
+
+    def test_probe_passes_token(self):
+        with patch("batesian._scanner.find_binary", return_value="/fake/batesian"):
+            s = Scanner(target="https://agent.example.com", token="my-tok")
+        with patch("subprocess.run", return_value=_mock_proc(stdout=self._probe_output())) as mock_run:
+            s.probe()
+        cmd = mock_run.call_args[0][0]
+        assert "--token" in cmd
+        assert "my-tok" in cmd
+
+
 class TestScannerBuildCommand:
     def test_skip_tls_flag(self):
         with patch("batesian._scanner.find_binary", return_value="/fake/batesian"):

@@ -18,6 +18,8 @@ info:
     - https://www.rfc-editor.org/rfc/rfc7591
     - https://www.rfc-editor.org/rfc/rfc9700
     - https://owasp.org/www-project-api-security/
+    - https://cwe.mitre.org/data/definitions/284.html
+    - https://cwe.mitre.org/data/definitions/269.html
 
   tags:
     - mcp
@@ -26,6 +28,8 @@ info:
     - scope-escalation
     - authorization
     - rfc7591
+    - cwe-284
+    - cwe-269
 
 attack:
   protocol: mcp

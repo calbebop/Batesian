@@ -225,8 +225,16 @@ func (e *InjectionParamsExecutor) analyzeResponse(body string, p injectionPayloa
 		}
 
 	case "template":
-		// Template injection: {{7*7}} -> 49 or ${7*7} -> 49
-		if strings.Contains(body, "49") {
+		// Template injection: {{7*7}} -> 49 or ${7*7} -> 49.
+		// Require the payload itself to appear in the body (echo) OR the result "49"
+		// to appear adjacent to a recognizable pattern, reducing false positives from
+		// benign responses that happen to contain the string "49".
+		payloadEchoed := strings.Contains(body, p.payload)
+		resultPresent := strings.Contains(body, `"49"`) ||
+			strings.Contains(body, ": 49") ||
+			strings.Contains(body, "=49") ||
+			strings.Contains(body, ">49<")
+		if payloadEchoed || resultPresent {
 			return &attack.Finding{
 				RuleID:     e.rule.ID,
 				RuleName:   e.rule.Name,
@@ -235,10 +243,10 @@ func (e *InjectionParamsExecutor) analyzeResponse(body string, p injectionPayloa
 				Title:      fmt.Sprintf("Possible template injection in tool %q (evaluated expression detected)", toolName),
 				Description: fmt.Sprintf(
 					"A template injection payload (%q) sent to tool %q at %s "+
-						"produced a response containing %q, which is the result of evaluating "+
-						"the expression. This may indicate server-side template injection.",
-					p.payload, toolName, endpoint, "49"),
-				Evidence:    fmt.Sprintf("payload: %q\npossible evaluation artifact: 49\nsnippet: %.400s", p.payload, body),
+						"produced a response that may indicate expression evaluation. "+
+						"This may indicate server-side template injection.",
+					p.payload, toolName, endpoint),
+				Evidence:    fmt.Sprintf("payload: %q\nsnippet: %.400s", p.payload, body),
 				Remediation: e.rule.Remediation,
 				TargetURL:   endpoint,
 			}

@@ -101,7 +101,7 @@ func (e *RateLimitAbsentExecutor) Execute(ctx context.Context, target string, op
 		RuleID:     e.rule.ID,
 		RuleName:   e.rule.Name,
 		Severity:   "medium",
-		Confidence: attack.ConfirmedExploit,
+		Confidence: attack.RiskIndicator,
 		Title: fmt.Sprintf(
 			"MCP server accepted all %d burst tool call requests with no rate limiting (0/%d throttled)",
 			accepted.Load(), sent),

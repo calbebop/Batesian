@@ -66,10 +66,16 @@ func runProbe(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("--target is required")
 	}
 
-	// In JSON/SARIF mode, status messages go to stderr so stdout is machine-parseable.
+	format, fmtErr := report.ParseFormat(outputFmt)
+	if fmtErr != nil {
+		return fmtErr
+	}
+	if format == report.FormatSARIF {
+		return fmt.Errorf("--output sarif is not supported for probe; use scan for SARIF output")
+	}
+	// In JSON mode, status messages go to stderr so stdout is machine-parseable.
 	statusOut := os.Stdout
-	format := report.ParseFormat(outputFmt)
-	if format == report.FormatJSON || format == report.FormatSARIF {
+	if format == report.FormatJSON {
 		statusOut = os.Stderr
 	}
 	printer := report.New(statusOut, verbose)
@@ -86,6 +92,9 @@ func runProbe(cmd *cobra.Command, args []string) error {
 }
 
 func probeA2A(target, token string, timeoutSecs int, skipTLS bool, format report.Format, printer *report.Printer) error { //nolint:cyclop
+	if timeoutSecs <= 0 {
+		timeoutSecs = 10
+	}
 	opts := []a2a.ClientOption{
 		a2a.WithTimeout(time.Duration(timeoutSecs) * time.Second),
 	}
@@ -199,6 +208,9 @@ func cardToProbeResult(card *a2a.AgentCard, elapsed time.Duration) *report.Probe
 }
 
 func probeMCP(target, token string, timeoutSecs int, skipTLS bool, format report.Format, printer *report.Printer) error {
+	if timeoutSecs <= 0 {
+		timeoutSecs = 10
+	}
 	opts := []mcp.ClientOption{
 		mcp.WithTimeout(time.Duration(timeoutSecs) * time.Second),
 	}

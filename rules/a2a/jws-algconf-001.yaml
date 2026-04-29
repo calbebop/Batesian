@@ -32,6 +32,7 @@ info:
     - https://portswigger.net/web-security/jwt/algorithm-confusion
     - https://www.rfc-editor.org/rfc/rfc7515
     - https://www.rfc-editor.org/rfc/rfc8785
+    - https://cwe.mitre.org/data/definitions/327.html
 
   tags:
     - a2a
@@ -40,6 +41,7 @@ info:
     - agent-card
     - integrity
     - cryptography
+    - cwe-327
 
 attack:
   protocol: a2a

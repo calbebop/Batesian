@@ -29,11 +29,15 @@ info:
   references:
     - https://owasp.org/www-project-secure-headers/
     - https://google.github.io/A2A/specification/
+    - https://cwe.mitre.org/data/definitions/16.html
+    - https://cwe.mitre.org/data/definitions/693.html
 
   tags:
     - a2a
     - security-headers
     - hardening
+    - cwe-16
+    - cwe-693
 
 attack:
   protocol: a2a

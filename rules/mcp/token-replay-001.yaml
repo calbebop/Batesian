@@ -22,6 +22,8 @@ info:
     - https://www.rfc-editor.org/rfc/rfc8707
     - https://www.rfc-editor.org/rfc/rfc9700
     - https://modelcontextprotocol.io/docs/concepts/authorization
+    - https://cwe.mitre.org/data/definitions/294.html
+    - https://cwe.mitre.org/data/definitions/347.html
 
   tags:
     - mcp
@@ -30,6 +32,8 @@ info:
     - token-replay
     - audience-validation
     - rfc9068
+    - cwe-294
+    - cwe-347
 
 attack:
   protocol: mcp

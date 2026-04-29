@@ -31,8 +31,8 @@ func TestSecurityHeaders_MissingAll(t *testing.T) {
 		t.Fatal("expected findings when all security headers are absent")
 	}
 	for _, f := range findings {
-		if f.Confidence != attack.ConfirmedExploit {
-			t.Errorf("expected ConfirmedExploit, got %v for %q", f.Confidence, f.Title)
+		if f.Confidence != attack.RiskIndicator {
+			t.Errorf("expected RiskIndicator, got %v for %q", f.Confidence, f.Title)
 		}
 	}
 }

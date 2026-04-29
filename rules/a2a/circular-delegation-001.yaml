@@ -32,6 +32,8 @@ info:
   references:
     - https://google.github.io/A2A/specification/
     - https://owasp.org/www-project-api-security/ (API4:2023 Unrestricted Resource Consumption)
+    - https://cwe.mitre.org/data/definitions/674.html
+    - https://cwe.mitre.org/data/definitions/400.html
 
   tags:
     - a2a
@@ -39,6 +41,8 @@ info:
     - dos
     - resource-exhaustion
     - loop-detection
+    - cwe-674
+    - cwe-400
 
 attack:
   protocol: a2a

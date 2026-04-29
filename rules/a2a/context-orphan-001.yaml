@@ -23,6 +23,8 @@ info:
     - https://a2aprotocol.ai/docs/specification#tasks
     - https://a2aprotocol.ai/docs/specification#context
     - https://owasp.org/www-project-top-ten/2021/A01_2021-Broken_Access_Control
+    - https://cwe.mitre.org/data/definitions/200.html
+    - https://cwe.mitre.org/data/definitions/284.html
 
   tags:
     - a2a
@@ -31,6 +33,8 @@ info:
     - authorization
     - session-isolation
     - owasp-agentic-top10
+    - cwe-200
+    - cwe-284
 
 attack:
   protocol: a2a

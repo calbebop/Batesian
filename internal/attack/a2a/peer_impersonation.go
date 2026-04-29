@@ -8,6 +8,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/calvin-mcdowell/batesian/internal/attack"
@@ -113,8 +114,8 @@ func (e *PeerImpersonationExecutor) Execute(ctx context.Context, target string, 
 				agentName, "https://legitimate-orchestrator.example.com",
 				forgedResp.StatusCode, baselineResp.StatusCode),
 			Evidence: fmt.Sprintf(
-				"Forged JWT: %s\nForged response: HTTP %d\nBaseline response: HTTP %d\n%s",
-				forgedToken, forgedResp.StatusCode, baselineResp.StatusCode,
+				"Forged JWT (redacted): %s...[signature omitted]\nForged response: HTTP %d\nBaseline response: HTTP %d\n%s",
+				jwtHeader(forgedToken), forgedResp.StatusCode, baselineResp.StatusCode,
 				snippet(forgedResp.Body, 400)),
 			Remediation: e.rule.Remediation,
 			TargetURL:   endpoint,
@@ -185,4 +186,14 @@ func buildForgedJWT(sub, aud string) (string, error) {
 	sig := mac.Sum(nil)
 
 	return signingInput + "." + base64.RawURLEncoding.EncodeToString(sig), nil
+}
+
+// jwtHeader returns the header.payload portion of a JWT (the first two segments)
+// for safe inclusion in evidence without leaking the signature or full token value.
+func jwtHeader(token string) string {
+	parts := strings.SplitN(token, ".", 3)
+	if len(parts) >= 2 {
+		return parts[0] + "." + parts[1]
+	}
+	return "[invalid-token]"
 }

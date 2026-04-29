@@ -189,14 +189,24 @@ func ExchangeAuthCode(ctx context.Context, cfg AuthCodeConfig) (*TokenResponse, 
 // OpenID Connect or OAuth metadata document at the given issuer URL.
 // Returns an empty string if discovery fails; the caller should fall back to
 // a manually configured TokenURL.
+//
+// Only https:// issuer URLs are accepted to avoid SSRF against plaintext endpoints.
 func DiscoverTokenURL(ctx context.Context, issuer string) string {
+	if !strings.HasPrefix(issuer, "https://") {
+		return "" // Reject non-HTTPS issuers to prevent SSRF via plaintext channels.
+	}
+	return discoverTokenURLWithClient(ctx, issuer, &http.Client{Timeout: 5 * time.Second})
+}
+
+// discoverTokenURLWithClient is the inner discovery function used by DiscoverTokenURL.
+// It accepts an explicit http.Client to allow unit tests to inject an httptest server client.
+func discoverTokenURLWithClient(ctx context.Context, issuer string, client *http.Client) string {
 	// Try OIDC well-known first, then OAuth 2.0 authorization server metadata.
 	candidates := []string{
 		strings.TrimRight(issuer, "/") + "/.well-known/openid-configuration",
 		strings.TrimRight(issuer, "/") + "/.well-known/oauth-authorization-server",
 	}
 
-	client := &http.Client{Timeout: 5 * time.Second}
 	for _, u := range candidates {
 		req, err := http.NewRequestWithContext(ctx, http.MethodGet, u, nil)
 		if err != nil {

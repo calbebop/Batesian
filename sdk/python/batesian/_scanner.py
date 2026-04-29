@@ -22,8 +22,9 @@ class Scanner:
         Explicit path to the batesian binary. If omitted, the binary is
         located automatically via :func:`~batesian._binary.find_binary`.
     token:
-        Bearer token for authenticated targets. Can also be set via the
-        ``BATESIAN_TOKEN`` environment variable.
+        Bearer token for authenticated targets. If omitted, the
+        ``BATESIAN_TOKEN`` environment variable is read automatically by
+        the CLI. Pass ``token`` here to set it explicitly in Python.
     token_url:
         OAuth 2.0 token endpoint for automatic client-credentials token
         acquisition. Requires ``client_id``.
@@ -150,6 +151,13 @@ class Scanner:
                 stderr=stderr,
             ) from e
 
+        if proc.returncode != 0:
+            raise ScanError(
+                f"batesian exited with code {proc.returncode}",
+                returncode=proc.returncode,
+                stderr=stderr,
+            )
+
         return Results.from_dict(data)
 
     def probe(self, *, protocol: Optional[str] = None) -> dict:
@@ -158,8 +166,8 @@ class Scanner:
         Parameters
         ----------
         protocol:
-            Protocol to probe: ``"a2a"`` or ``"mcp"``. Probes all protocols
-            if omitted.
+            Protocol to probe: ``"a2a"`` or ``"mcp"``. Defaults to
+            ``"a2a"`` when omitted (matches the CLI default).
 
         Returns
         -------
@@ -180,13 +188,24 @@ class Scanner:
             raise ScanError(f"Probe timed out after {e.timeout}s") from e
 
         stdout = proc.stdout.strip()
+        stderr = proc.stderr.strip()
+
         if not stdout:
-            raise ScanError("batesian probe produced no output", returncode=proc.returncode, stderr=proc.stderr)
+            raise ScanError("batesian probe produced no output", returncode=proc.returncode, stderr=stderr)
 
         try:
-            return json.loads(stdout)
+            result = json.loads(stdout)
         except json.JSONDecodeError as e:
-            raise ScanError(f"Failed to parse probe output: {e}") from e
+            raise ScanError(f"Failed to parse probe output: {e}", returncode=proc.returncode, stderr=stderr) from e
+
+        if proc.returncode != 0:
+            raise ScanError(
+                f"batesian probe exited with code {proc.returncode}",
+                returncode=proc.returncode,
+                stderr=stderr,
+            )
+
+        return result
 
     def _build_command(
         self,

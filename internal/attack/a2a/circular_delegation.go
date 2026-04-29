@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"net"
 	"net/http"
-	"strings"
 	"sync/atomic"
 	"time"
 
@@ -206,13 +205,14 @@ func (e *CircularDelegationExecutor) depthProbe(
 	return nil
 }
 
-// addrPort extracts the port number from an address string like "127.0.0.1:54321".
+// addrPort extracts the port number from an address string.
+// Handles both IPv4 ("1.2.3.4:port") and IPv6 ("[::1]:port") forms.
 func addrPort(addr string) int {
-	parts := strings.Split(addr, ":")
-	if len(parts) == 0 {
+	_, portStr, err := net.SplitHostPort(addr)
+	if err != nil {
 		return 0
 	}
 	port := 0
-	fmt.Sscanf(parts[len(parts)-1], "%d", &port)
+	fmt.Sscanf(portStr, "%d", &port)
 	return port
 }

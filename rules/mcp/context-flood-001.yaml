@@ -26,12 +26,14 @@ info:
   references:
     - https://modelcontextprotocol.io/docs/concepts/tools
     - https://owasp.org/www-project-top-10-for-large-language-model-applications/
+    - https://cwe.mitre.org/data/definitions/400.html
 
   tags:
     - mcp
     - dos
     - context-window
     - size-limit
+    - cwe-400
 
 attack:
   protocol: mcp

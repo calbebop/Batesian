@@ -24,17 +24,21 @@ const (
 	FormatSARIF    Format = "sarif"
 )
 
-// ParseFormat parses a format string into a Format, defaulting to table.
-func ParseFormat(s string) Format {
+// ParseFormat parses a format string into a Format.
+// Returns an error for unknown format strings rather than silently defaulting
+// to table, so typos like --output=jsno are caught immediately.
+func ParseFormat(s string) (Format, error) {
 	switch strings.ToLower(s) {
+	case "", "table":
+		return FormatTable, nil
 	case "json":
-		return FormatJSON
+		return FormatJSON, nil
 	case "markdown", "md":
-		return FormatMarkdown
+		return FormatMarkdown, nil
 	case "sarif":
-		return FormatSARIF
+		return FormatSARIF, nil
 	default:
-		return FormatTable
+		return FormatTable, fmt.Errorf("unknown output format %q; supported: table, json, markdown, sarif", s)
 	}
 }
 

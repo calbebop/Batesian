@@ -26,12 +26,16 @@ info:
   references:
     - https://modelcontextprotocol.io/docs/concepts/servers
     - https://spec.modelcontextprotocol.io/specification/2025-03-26/
+    - https://cwe.mitre.org/data/definitions/20.html
+    - https://cwe.mitre.org/data/definitions/77.html
 
   tags:
     - mcp
     - prompt-injection
     - initialize
     - server-instructions
+    - cwe-20
+    - cwe-77
 
 attack:
   protocol: mcp

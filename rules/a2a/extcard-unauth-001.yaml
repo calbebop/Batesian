@@ -18,6 +18,8 @@ info:
     - https://github.com/google-a2a/a2a-samples/issues/340
     - https://a2aprotocol.ai/docs/specification#extended-agent-card
     - https://a2aprotocol.ai/docs/specification#agent-capabilities
+    - https://cwe.mitre.org/data/definitions/862.html
+    - https://cwe.mitre.org/data/definitions/200.html
 
   tags:
     - a2a
@@ -25,6 +27,8 @@ info:
     - information-disclosure
     - extended-agent-card
     - owasp-agentic-top10
+    - cwe-862
+    - cwe-200
 
 attack:
   protocol: a2a

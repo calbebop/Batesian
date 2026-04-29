@@ -24,12 +24,16 @@ info:
   references:
     - https://modelcontextprotocol.io/docs/concepts/tools
     - https://owasp.org/www-project-api-security/ (API4:2023 Unrestricted Resource Consumption)
+    - https://cwe.mitre.org/data/definitions/770.html
+    - https://cwe.mitre.org/data/definitions/400.html
 
   tags:
     - mcp
     - rate-limiting
     - dos
     - resource-exhaustion
+    - cwe-770
+    - cwe-400
 
 attack:
   protocol: mcp

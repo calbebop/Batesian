@@ -29,6 +29,8 @@ info:
     - https://developer.microsoft.com/blog/protecting-against-indirect-injection-attacks-mcp
     - https://arxiv.org/abs/2512.06556
     - https://modelcontextprotocol.io/docs/concepts/tools
+    - https://cwe.mitre.org/data/definitions/494.html
+    - https://cwe.mitre.org/data/definitions/20.html
 
   tags:
     - mcp
@@ -37,6 +39,8 @@ info:
     - rug-pull
     - llm
     - indirect-injection
+    - cwe-494
+    - cwe-20
 
 attack:
   protocol: mcp

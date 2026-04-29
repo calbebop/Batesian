@@ -106,6 +106,10 @@ func (v Vars) ExpandMap(m map[string]string) map[string]string {
 // randomID generates a short random hex string for unique IDs within a run.
 func randomID() string {
 	b := make([]byte, 6)
-	_, _ = rand.Read(b)
+	if _, err := rand.Read(b); err != nil {
+		// crypto/rand failure is extremely unlikely; use a deterministic fallback
+		// rather than panicking, as a weak ID is better than aborting a scan.
+		return "000000"
+	}
 	return hex.EncodeToString(b)
 }

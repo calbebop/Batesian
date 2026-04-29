@@ -40,7 +40,7 @@ type Listener struct {
 // New creates a Listener that will bind to a random available port on all interfaces.
 func New() *Listener {
 	l := &Listener{
-		callbacks: make(chan Callback, 16),
+		callbacks: make(chan Callback, 64),
 	}
 	return l
 }

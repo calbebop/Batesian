@@ -97,12 +97,12 @@ func (e *MCPSecurityHeadersExecutor) Execute(ctx context.Context, target string,
 
 		for _, hdr := range requiredMCPHeaders {
 			if !hdr.check(headers) {
-				findings = append(findings, attack.Finding{
-					RuleID:     e.rule.ID,
-					RuleName:   e.rule.Name,
-					Severity:   hdr.severity,
-					Confidence: attack.ConfirmedExploit,
-					Title:      fmt.Sprintf("MCP endpoint missing %s header", hdr.name),
+			findings = append(findings, attack.Finding{
+				RuleID:     e.rule.ID,
+				RuleName:   e.rule.Name,
+				Severity:   hdr.severity,
+				Confidence: attack.RiskIndicator,
+				Title:      fmt.Sprintf("MCP endpoint missing %s header", hdr.name),
 					Description: fmt.Sprintf(
 						"%s on %s (HTTP %d). "+
 							"Missing security headers weaken browser-facing attack surface defenses.",

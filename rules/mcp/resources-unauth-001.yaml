@@ -17,6 +17,7 @@ info:
   references:
     - https://modelcontextprotocol.io/docs/concepts/resources
     - https://owasp.org/www-project-top-ten/2021/A01_2021-Broken_Access_Control
+    - https://cwe.mitre.org/data/definitions/862.html
 
   tags:
     - mcp
@@ -24,6 +25,7 @@ info:
     - authorization
     - disclosure
     - unauthenticated
+    - cwe-862
 
 attack:
   protocol: mcp

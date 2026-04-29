@@ -144,7 +144,10 @@ func runScan(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	format := report.ParseFormat(outputFmt)
+	format, fmtErr := report.ParseFormat(outputFmt)
+	if fmtErr != nil {
+		return fmtErr
+	}
 	statusOut := os.Stdout
 	if format == report.FormatJSON || format == report.FormatSARIF {
 		statusOut = os.Stderr
@@ -271,6 +274,7 @@ func buildScanJSON(target string, results []engine.RunResult) map[string]interfa
 		RuleID      string `json:"rule_id"`
 		RuleName    string `json:"rule_name"`
 		Severity    string `json:"severity"`
+		Confidence  string `json:"confidence"`
 		Title       string `json:"title"`
 		Description string `json:"description"`
 		Evidence    string `json:"evidence,omitempty"`
@@ -283,10 +287,15 @@ func buildScanJSON(target string, results []engine.RunResult) map[string]interfa
 
 	for _, r := range results {
 		for _, f := range r.Findings {
+			confidence := string(f.Confidence)
+			if confidence == "" {
+				confidence = "confirmed"
+			}
 			findings = append(findings, jsonFinding{
 				RuleID:      f.RuleID,
 				RuleName:    f.RuleName,
 				Severity:    f.Severity,
+				Confidence:  confidence,
 				Title:       f.Title,
 				Description: f.Description,
 				Evidence:    f.Evidence,

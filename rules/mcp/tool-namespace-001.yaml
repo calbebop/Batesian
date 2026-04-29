@@ -30,6 +30,8 @@ info:
   references:
     - https://modelcontextprotocol.io/docs/concepts/tools
     - https://owasp.org/www-project-top-10-for-large-language-model-applications/
+    - https://cwe.mitre.org/data/definitions/20.html
+    - https://cwe.mitre.org/data/definitions/829.html
 
   tags:
     - mcp
@@ -37,6 +39,8 @@ info:
     - namespace
     - rug-pull
     - multi-session
+    - cwe-20
+    - cwe-829
 
 attack:
   protocol: mcp

@@ -119,16 +119,19 @@ out-of-band callback listener. In CI, start the OOB listener with `--oob`:
             > results.sarif
 ```
 
-The `--oob` flag starts a local HTTP listener on a random port and uses a
-callback URL derived from the runner's public IP. For private network targets,
-use `--oob-url` to point to a pre-configured external listener instead.
+The `--oob` flag starts a local HTTP listener on a random port and derives the
+callback URL from the host's detected outbound interface IP (typically a private
+or RFC 1918 address). On GitHub Actions runners, this IP is not publicly
+routable, so the target agent must be on the same network as the runner to
+receive the callback. For production CI where the target is external, use
+`--oob-url` to point to a pre-configured externally reachable listener instead.
 
 ## GitLab CI
 
 ```yaml
 # .gitlab-ci.yml
 batesian-scan:
-  image: golang:1.23
+  image: golang:1.25
   stage: test
   script:
     - go install github.com/calvin-mcdowell/batesian/cmd/batesian@latest

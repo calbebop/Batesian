@@ -120,12 +120,22 @@ func TestDiscoverTokenURL(t *testing.T) {
 	defer srv.Close()
 	tokenEndpoint = srv.URL
 
-	ep := auth.DiscoverTokenURL(context.Background(), srv.URL)
+	// Use the test helper that bypasses the HTTPS-only scheme check so we can
+	// inject our httptest (http://) server without skipping the discovery logic.
+	ep := auth.DiscoverTokenURLWithClient(context.Background(), srv.URL, &http.Client{})
 	if ep == "" {
 		t.Fatal("expected token endpoint from OIDC discovery, got empty string")
 	}
 	if !strings.HasSuffix(ep, "/oauth/token") {
 		t.Errorf("unexpected token endpoint: %q", ep)
+	}
+}
+
+func TestDiscoverTokenURL_RejectsHTTP(t *testing.T) {
+	// DiscoverTokenURL must return "" for http:// issuers (SSRF protection).
+	ep := auth.DiscoverTokenURL(context.Background(), "http://malicious.example.com")
+	if ep != "" {
+		t.Errorf("expected empty string for http:// issuer, got %q", ep)
 	}
 }
 

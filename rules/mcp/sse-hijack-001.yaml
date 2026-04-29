@@ -33,12 +33,14 @@ info:
   references:
     - https://modelcontextprotocol.io/docs/concepts/transports
     - https://spec.modelcontextprotocol.io/specification/2025-03-26/
+    - https://cwe.mitre.org/data/definitions/862.html
 
   tags:
     - mcp
     - sse
     - authentication
     - information-disclosure
+    - cwe-862
 
 attack:
   protocol: mcp
