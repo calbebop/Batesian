@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"html/template"
 	"net"
 	"net/http"
 	"net/url"
@@ -249,52 +250,66 @@ func waitForCallback(
 	}
 }
 
-// respondCallbackSuccess writes a friendly HTML page to the user's browser
-// after a successful authorization callback.
-func respondCallbackSuccess(w http.ResponseWriter) {
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	w.WriteHeader(http.StatusOK)
-	_, _ = w.Write([]byte(`<!doctype html><html><head><title>Batesian -- authorization complete</title>` +
+// successPage is the HTML rendered to the browser after a successful callback.
+// It contains no user-controlled data.
+var successPage = template.Must(template.New("ok").Parse(
+	`<!doctype html><html><head><title>Batesian authorization complete</title>` +
 		`<style>body{font-family:system-ui,sans-serif;background:#0f0f0f;color:#eaeaea;` +
 		`display:flex;align-items:center;justify-content:center;height:100vh;margin:0}` +
 		`div{text-align:center;padding:2rem;background:#1a1a1a;border-radius:8px;border:1px solid #333}` +
 		`h1{margin-top:0;font-weight:500}p{color:#999}</style></head><body>` +
 		`<div><h1>Authorization complete</h1><p>You can close this tab and return to your terminal.</p></div>` +
 		`</body></html>`))
+
+// errorPage renders the failure page. The Err and Desc fields are auto-escaped
+// by html/template so callers may pass raw values from the OAuth callback.
+var errorPage = template.Must(template.New("err").Parse(
+	`<!doctype html><html><head><title>Batesian authorization failed</title>` +
+		`<style>body{font-family:system-ui,sans-serif;background:#0f0f0f;color:#eaeaea;` +
+		`display:flex;align-items:center;justify-content:center;height:100vh;margin:0}` +
+		`div{text-align:center;padding:2rem;background:#1a1a1a;border-radius:8px;border:1px solid #ff5555}` +
+		`h1{margin-top:0;font-weight:500;color:#ff5555}code{background:#222;padding:0.25rem 0.5rem;border-radius:4px}</style></head>` +
+		`<body><div><h1>Authorization failed</h1><p><code>{{.Err}}</code></p><p>{{.Desc}}</p></div></body></html>`))
+
+// respondCallbackSuccess writes a friendly HTML page to the user's browser
+// after a successful authorization callback.
+func respondCallbackSuccess(w http.ResponseWriter) {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.WriteHeader(http.StatusOK)
+	_ = successPage.Execute(w, nil)
 }
 
 // respondCallbackError writes an error page so the user knows the flow failed.
+// errParam and desc come from the OAuth provider; html/template escapes them
+// before rendering.
 func respondCallbackError(w http.ResponseWriter, errParam, desc string) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.WriteHeader(http.StatusBadRequest)
-	body := fmt.Sprintf(`<!doctype html><html><head><title>Batesian -- authorization failed</title>`+
-		`<style>body{font-family:system-ui,sans-serif;background:#0f0f0f;color:#eaeaea;`+
-		`display:flex;align-items:center;justify-content:center;height:100vh;margin:0}`+
-		`div{text-align:center;padding:2rem;background:#1a1a1a;border-radius:8px;border:1px solid #ff5555}`+
-		`h1{margin-top:0;font-weight:500;color:#ff5555}code{background:#222;padding:0.25rem 0.5rem;border-radius:4px}</style></head>`+
-		`<body><div><h1>Authorization failed</h1><p><code>%s</code></p><p>%s</p></div></body></html>`,
-		htmlEscape(errParam), htmlEscape(desc))
-	_, _ = w.Write([]byte(body))
-}
-
-// htmlEscape sanitizes a string for safe inclusion in our minimal HTML response pages.
-func htmlEscape(s string) string {
-	r := strings.NewReplacer("&", "&amp;", "<", "&lt;", ">", "&gt;", `"`, "&quot;", "'", "&#39;")
-	return r.Replace(s)
+	_ = errorPage.Execute(w, struct{ Err, Desc string }{Err: errParam, Desc: desc})
 }
 
 // openInBrowser launches the user's default web browser for the given URL.
 // It returns an error if no platform-appropriate command is available.
 //
+// The target is validated as an https:// authorization URL by PerformPKCEFlow
+// before reaching this function, so the variable arg to exec.Command is bounded
+// to URLs we generated ourselves.
+//
 // On Windows, the URL is launched via cmd /c start "" "<url>" to avoid the
 // quirk where start treats the first quoted argument as a window title.
 func openInBrowser(target string) error {
+	if !strings.HasPrefix(target, "https://") {
+		return fmt.Errorf("refusing to open non-https URL in browser: %q", target)
+	}
 	switch runtime.GOOS {
 	case "windows":
+		// #nosec G204 -- target validated as https URL above.
 		return exec.Command("cmd", "/c", "start", "", target).Start()
 	case "darwin":
+		// #nosec G204 -- target validated as https URL above.
 		return exec.Command("open", target).Start()
 	default:
+		// #nosec G204 -- target validated as https URL above.
 		return exec.Command("xdg-open", target).Start()
 	}
 }
