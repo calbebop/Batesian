@@ -120,29 +120,34 @@ batesian init
 
 Batesian attack rules are YAML files. Anyone can write new attack patterns without touching Go. Rules load at runtime; no recompilation needed.
 
+Each rule pairs a metadata block with an `attack.type` that maps to a registered Go executor. The executor reads target-specific parameters from the YAML and decides how to probe the server. See [`CONTRIBUTING.md`](CONTRIBUTING.md) for the full authoring guide.
+
 ```yaml
-id: a2a-push-ssrf-001
+# Minimal rule skeleton -- see CONTRIBUTING.md for the full schema.
+id: a2a-example-001
 info:
-  name: A2A Push Notification SSRF
-  severity: high
-  tags: [a2a, ssrf, push-notification]
+  name: Example A2A Rule
+  author: your-handle
+  severity: high          # critical | high | medium | low | info
+  description: |
+    One-paragraph description of the vulnerability and why it matters.
   references:
-    - https://github.com/google-a2a/a2a-python/issues/786
+    - https://a2aprotocol.ai/docs/specification
+  tags:
+    - a2a
+    - authentication
 
 attack:
-  protocol: a2a
-  type: push-notification-ssrf
-  register:
-    pushNotificationConfig:
-      url: "{{OOBListener}}"
-      token: "batesian-probe"
-  trigger:
-    send_task: true
+  protocol: a2a           # a2a | mcp
+  type: a2a-example       # must match a registered executor in engine.go
 
 assert:
-  - condition: oob_callback_received
-    description: "Server made outbound HTTP request to attacker-controlled URL"
+  - condition: example_condition
+    description: "Human-readable finding description"
     severity: high
+
+remediation: |
+  Detailed fix guidance for developers.
 ```
 
 ## Python SDK

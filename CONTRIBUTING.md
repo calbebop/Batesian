@@ -91,6 +91,12 @@ Rules for executors:
 3. Keep executors focused. One rule = one attack class. Shared helpers (session
    setup, SSE parsing) belong in package-level functions, not inlined.
 4. Never use `time.Sleep` for more than 500ms. Use `context.WithTimeout`.
+5. **YAML `probes` blocks are documentation-only for most rule types.** Some rules
+   (e.g. `a2a-json-rpc-fuzz-001`) include a `probes:` list in YAML to document the
+   payloads used, but the executor does not read these at runtime -- the payloads are
+   hardcoded in Go so they can be dynamically generated (e.g. oversized strings) and
+   guarantee correctness. If you add a `probes:` block to a new rule's YAML, include
+   a comment explaining whether the executor reads it or not.
 
 ### Register the Executor
 

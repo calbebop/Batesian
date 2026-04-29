@@ -41,7 +41,7 @@ func Execute() error {
 }
 
 func init() {
-	rootCmd.PersistentFlags().StringP("output", "o", "table", "Output format: table, json, markdown, sarif")
+	rootCmd.PersistentFlags().StringP("output", "o", "table", "Output format: table, json, sarif")
 	rootCmd.PersistentFlags().BoolP("verbose", "v", false, "Verbose output")
 	rootCmd.PersistentFlags().StringP("target", "t", "", "Target base URL")
 }

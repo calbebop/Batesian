@@ -232,6 +232,28 @@ class TestScannerProbe:
         assert "--token" in cmd
         assert "my-tok" in cmd
 
+    def test_probe_raises_on_invalid_json(self):
+        with patch("batesian._scanner.find_binary", return_value="/fake/batesian"):
+            s = Scanner(target="https://agent.example.com")
+        with patch("subprocess.run", return_value=_mock_proc(stdout="not json")):
+            with pytest.raises(ScanError, match="parse"):
+                s.probe()
+
+    def test_probe_raises_on_timeout(self):
+        with patch("batesian._scanner.find_binary", return_value="/fake/batesian"):
+            s = Scanner(target="https://agent.example.com")
+        with patch("subprocess.run", side_effect=subprocess.TimeoutExpired(cmd="batesian", timeout=60)):
+            with pytest.raises(ScanError, match="timed out"):
+                s.probe()
+
+    def test_probe_passes_skip_tls(self):
+        with patch("batesian._scanner.find_binary", return_value="/fake/batesian"):
+            s = Scanner(target="https://agent.example.com", skip_tls=True)
+        with patch("subprocess.run", return_value=_mock_proc(stdout=self._probe_output())) as mock_run:
+            s.probe()
+        cmd = mock_run.call_args[0][0]
+        assert "--skip-tls" in cmd
+
 
 class TestScannerBuildCommand:
     def test_skip_tls_flag(self):

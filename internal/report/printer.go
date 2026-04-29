@@ -18,10 +18,9 @@ import (
 type Format string
 
 const (
-	FormatTable    Format = "table"
-	FormatJSON     Format = "json"
-	FormatMarkdown Format = "markdown"
-	FormatSARIF    Format = "sarif"
+	FormatTable Format = "table"
+	FormatJSON  Format = "json"
+	FormatSARIF Format = "sarif"
 )
 
 // ParseFormat parses a format string into a Format.
@@ -33,12 +32,12 @@ func ParseFormat(s string) (Format, error) {
 		return FormatTable, nil
 	case "json":
 		return FormatJSON, nil
-	case "markdown", "md":
-		return FormatMarkdown, nil
 	case "sarif":
 		return FormatSARIF, nil
+	case "markdown", "md":
+		return FormatTable, fmt.Errorf("markdown output is not yet implemented; use table, json, or sarif")
 	default:
-		return FormatTable, fmt.Errorf("unknown output format %q; supported: table, json, markdown, sarif", s)
+		return FormatTable, fmt.Errorf("unknown output format %q; supported: table, json, sarif", s)
 	}
 }
 

@@ -235,12 +235,20 @@ func coalesceProtocol(p string) string {
 	return p
 }
 
-// splitProtocols splits a comma or space-separated protocol string into a slice.
+// splitProtocols splits a comma-separated protocol string into a slice.
+// Each token is trimmed and lowercased so that values like "a2a, mcp" match correctly.
 func splitProtocols(p string) []string {
 	if p == "" {
 		return nil
 	}
-	return strings.Split(strings.ToLower(p), ",")
+	raw := strings.Split(strings.ToLower(p), ",")
+	out := make([]string, 0, len(raw))
+	for _, v := range raw {
+		if t := strings.TrimSpace(v); t != "" {
+			out = append(out, t)
+		}
+	}
+	return out
 }
 
 // firstNonEmpty returns the first non-empty string from the arguments.

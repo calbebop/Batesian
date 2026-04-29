@@ -70,6 +70,34 @@ func TestSSEHijack_RequiresAuth(t *testing.T) {
 	}
 }
 
+func TestSSEHijack_StreamAcceptedNoData(t *testing.T) {
+	// Server returns text/event-stream 200 but with no recognizable MCP data events.
+	// This should produce a RiskIndicator finding (SSE accepted but no content confirmed).
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get("Accept") == "text/event-stream" {
+			w.Header().Set("Content-Type", "text/event-stream")
+			w.WriteHeader(http.StatusOK)
+			// Emit only a comment line -- no data: event.
+			w.Write([]byte(": keep-alive\n\n"))
+			return
+		}
+		http.NotFound(w, r)
+	}))
+	defer srv.Close()
+
+	exec := mcpattack.NewSSEHijackExecutor(attack.RuleContext{ID: "mcp-sse-hijack-001", Remediation: "require auth"})
+	findings, err := exec.Execute(context.Background(), srv.URL, attack.Options{TimeoutSeconds: 5})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(findings) == 0 {
+		t.Fatal("expected a RiskIndicator finding for SSE stream accepted without data")
+	}
+	if findings[0].Confidence != attack.RiskIndicator {
+		t.Errorf("expected RiskIndicator, got %v", findings[0].Confidence)
+	}
+}
+
 func TestSSEHijack_NoSSEEndpoint(t *testing.T) {
 	// Server does not serve SSE at any path.
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

@@ -85,6 +85,27 @@ if results.critical_count > 0:
     sys.exit(1)
 ```
 
+### Probe a target for attack surface
+
+The `probe` command discovers the agent or MCP server's capabilities and flags
+potential attack surface without running full exploit checks.
+
+```python
+scanner = Scanner(target="https://agent.example.com")
+
+# Probe A2A (default)
+info = scanner.probe()
+print(info)
+
+# Probe MCP
+info = scanner.probe(protocol="mcp")
+print(info)
+```
+
+`probe()` returns the raw JSON dict from the CLI. Use it to understand the
+target before running a full scan. It defaults to the `"a2a"` protocol when
+`protocol` is omitted (matching the CLI default).
+
 ## API Reference
 
 ### `Scanner`
@@ -126,6 +147,13 @@ if results.critical_count > 0:
 | `evidence` | `str` | Raw evidence from the probe |
 | `remediation` | `str` | Fix guidance |
 | `is_confirmed` | `bool` | True when confidence is `confirmed` |
+
+### `Scanner` methods
+
+| Method | Returns | Description |
+|---|---|---|
+| `run(**kwargs)` | `Results` | Execute a full scan; raises `ScanError` on failure |
+| `probe(*, protocol)` | `dict` | Run the probe command; returns raw JSON; raises `ScanError` on failure |
 
 ## Binary discovery
 

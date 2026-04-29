@@ -81,7 +81,33 @@ func Load(path string) (*Config, error) {
 		return nil, fmt.Errorf("parsing config file %s: %w", path, err)
 	}
 
+	if err := cfg.validate(path); err != nil {
+		return nil, err
+	}
+
 	return &cfg, nil
+}
+
+// validate checks that enum fields contain only recognized values.
+func (c *Config) validate(path string) error {
+	validProtocols := map[string]bool{"": true, "a2a": true, "mcp": true}
+	if !validProtocols[c.Protocol] {
+		return fmt.Errorf("config %s: invalid protocol %q; must be \"a2a\", \"mcp\", or omit for all", path, c.Protocol)
+	}
+
+	validOutputs := map[string]bool{"": true, "table": true, "json": true, "sarif": true}
+	if !validOutputs[c.Output] {
+		return fmt.Errorf("config %s: invalid output %q; must be table, json, or sarif", path, c.Output)
+	}
+
+	validSeverities := map[string]bool{"critical": true, "high": true, "medium": true, "low": true, "info": true}
+	for _, s := range c.Severities {
+		if !validSeverities[s] {
+			return fmt.Errorf("config %s: invalid severity %q; must be critical, high, medium, low, or info", path, s)
+		}
+	}
+
+	return nil
 }
 
 // findConfigFile searches cwd and parent directories for a config file.

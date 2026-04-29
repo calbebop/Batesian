@@ -131,6 +131,9 @@ func TestInjectionParams_CommandOutputLeaked(t *testing.T) {
 	if findings[0].Severity != "critical" {
 		t.Errorf("expected critical severity for command injection, got %s", findings[0].Severity)
 	}
+	if findings[0].Confidence != attack.ConfirmedExploit {
+		t.Errorf("expected ConfirmedExploit, got %v", findings[0].Confidence)
+	}
 }
 
 func TestInjectionParams_CleanServer(t *testing.T) {

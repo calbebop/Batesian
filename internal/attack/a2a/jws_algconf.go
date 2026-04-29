@@ -61,10 +61,11 @@ func (e *JWSAlgConfExecutor) Execute(ctx context.Context, target string, opts at
 	if len(sigsRaw) == 0 {
 		if card["supportsAuthenticatedExtendedCard"] == true {
 			findings = append(findings, attack.Finding{
-				RuleID:   e.rule.ID,
-				RuleName: e.rule.Name,
-				Severity: "info",
-				Title:    "A2A agent card has no JWS signatures despite advertising authenticated extended card",
+				RuleID:     e.rule.ID,
+				RuleName:   e.rule.Name,
+				Severity:   "info",
+				Confidence: attack.RiskIndicator,
+				Title:      "A2A agent card has no JWS signatures despite advertising authenticated extended card",
 				Description: "The agent card advertises supportsAuthenticatedExtendedCard but publishes " +
 					"no JWS signatures. Without signatures, agent cards can be spoofed by DNS hijacking " +
 					"or MITM. Clients have no cryptographic basis for trusting card contents.",
@@ -103,10 +104,11 @@ func (e *JWSAlgConfExecutor) Execute(ctx context.Context, target string, opts at
 		switch strings.ToLower(alg) {
 		case "none", "":
 			findings = append(findings, attack.Finding{
-				RuleID:   e.rule.ID,
-				RuleName: e.rule.Name,
-				Severity: "critical",
-				Title:    fmt.Sprintf("A2A agent card signatures[%d] uses alg:%q — trivially forgeable", i, alg),
+				RuleID:     e.rule.ID,
+				RuleName:   e.rule.Name,
+				Severity:   "critical",
+				Confidence: attack.ConfirmedExploit,
+				Title:      fmt.Sprintf("A2A agent card signatures[%d] uses alg:%q — trivially forgeable", i, alg),
 				Description: "The JWS protected header specifies alg:\"none\", meaning no signature " +
 					"material protects the card. Any attacker can serve a forged card that passes " +
 					"verification in any library that reads the algorithm from the token header.",
@@ -119,10 +121,11 @@ func (e *JWSAlgConfExecutor) Execute(ctx context.Context, target string, opts at
 		// Check 2: symmetric algorithms unsuitable for public card verification
 		if strings.HasPrefix(strings.ToUpper(alg), "HS") {
 			findings = append(findings, attack.Finding{
-				RuleID:   e.rule.ID,
-				RuleName: e.rule.Name,
-				Severity: "high",
-				Title:    fmt.Sprintf("A2A agent card signatures[%d] uses symmetric algorithm %s", i, alg),
+				RuleID:     e.rule.ID,
+				RuleName:   e.rule.Name,
+				Severity:   "high",
+				Confidence: attack.RiskIndicator,
+				Title:      fmt.Sprintf("A2A agent card signatures[%d] uses symmetric algorithm %s", i, alg),
 				Description: fmt.Sprintf("Symmetric algorithm %s requires the verifier to hold the same "+
 					"key as the signer. For a public agent card, every verifying client must share the "+
 					"signing secret — defeating the purpose of signatures. Also enables RS256->HS256 "+
@@ -136,10 +139,11 @@ func (e *JWSAlgConfExecutor) Execute(ctx context.Context, target string, opts at
 		// Check 3: empty signature value with non-none alg
 		if signature == "" && strings.ToLower(alg) != "none" {
 			findings = append(findings, attack.Finding{
-				RuleID:   e.rule.ID,
-				RuleName: e.rule.Name,
-				Severity: "critical",
-				Title:    fmt.Sprintf("A2A agent card signatures[%d] has empty signature value", i),
+				RuleID:     e.rule.ID,
+				RuleName:   e.rule.Name,
+				Severity:   "critical",
+				Confidence: attack.ConfirmedExploit,
+				Title:      fmt.Sprintf("A2A agent card signatures[%d] has empty signature value", i),
 				Description: "The signature field is empty but alg is not \"none\". This card will " +
 					"fail verification in correct implementations but may silently pass broken ones " +
 					"that skip the signature bytes check.",
@@ -154,10 +158,11 @@ func (e *JWSAlgConfExecutor) Execute(ctx context.Context, target string, opts at
 			jkuHost := hostOnly(jku)
 			if jkuHost != "" && jkuHost != agentHost {
 				findings = append(findings, attack.Finding{
-					RuleID:   e.rule.ID,
-					RuleName: e.rule.Name,
-					Severity: "medium",
-					Title:    fmt.Sprintf("A2A agent card signatures[%d] jku points to external domain %s", i, jkuHost),
+					RuleID:     e.rule.ID,
+					RuleName:   e.rule.Name,
+					Severity:   "medium",
+					Confidence: attack.RiskIndicator,
+					Title:      fmt.Sprintf("A2A agent card signatures[%d] jku points to external domain %s", i, jkuHost),
 					Description: fmt.Sprintf("The jku field (%s) references a JWKS on a different domain than the agent (%s). "+
 						"If the external domain is compromised, attackers can replace the keys and forge cards "+
 						"that pass verification.", jku, agentHost),
@@ -168,10 +173,11 @@ func (e *JWSAlgConfExecutor) Execute(ctx context.Context, target string, opts at
 			}
 			if strings.HasPrefix(jku, "http://") {
 				findings = append(findings, attack.Finding{
-					RuleID:   e.rule.ID,
-					RuleName: e.rule.Name,
-					Severity: "high",
-					Title:    fmt.Sprintf("A2A agent card signatures[%d] jku uses plaintext HTTP", i),
+					RuleID:     e.rule.ID,
+					RuleName:   e.rule.Name,
+					Severity:   "high",
+					Confidence: attack.ConfirmedExploit,
+					Title:      fmt.Sprintf("A2A agent card signatures[%d] jku uses plaintext HTTP", i),
 					Description: "The jku URL uses HTTP instead of HTTPS. An attacker with network access " +
 						"can intercept the JWKS fetch and substitute malicious keys.",
 					Evidence:    fmt.Sprintf("jku: %s", jku),
@@ -185,10 +191,11 @@ func (e *JWSAlgConfExecutor) Execute(ctx context.Context, target string, opts at
 		if header != nil {
 			if unprotectedJKU, ok := header["jku"].(string); ok && unprotectedJKU != "" {
 				findings = append(findings, attack.Finding{
-					RuleID:   e.rule.ID,
-					RuleName: e.rule.Name,
-					Severity: "high",
-					Title:    fmt.Sprintf("A2A agent card signatures[%d] jku is in unprotected header", i),
+					RuleID:     e.rule.ID,
+					RuleName:   e.rule.Name,
+					Severity:   "high",
+					Confidence: attack.ConfirmedExploit,
+					Title:      fmt.Sprintf("A2A agent card signatures[%d] jku is in unprotected header", i),
 					Description: "The jku field is in the unprotected JWS header, which is NOT covered by " +
 						"the signature. An attacker can modify this field in transit to redirect key lookup " +
 						"to an attacker-controlled JWKS endpoint without invalidating the signature.",

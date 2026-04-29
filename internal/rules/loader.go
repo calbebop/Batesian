@@ -10,6 +10,10 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// maxRuleFileBytes is the maximum size of a single rule YAML file. Files larger
+// than this are skipped with a warning to prevent accidental large-file DoS.
+const maxRuleFileBytes = 4 * 1024 * 1024 // 4 MiB
+
 // LoadDir loads all .yaml and .yml rule files from dir and its subdirectories.
 // Files that fail to parse or validate are collected as warnings, not fatal errors,
 // so a single bad rule file does not block the scan.
@@ -115,6 +119,12 @@ func loadFS(fsys fs.FS, root string) ([]*Rule, []LoadWarning, error) {
 		}
 		ext := strings.ToLower(filepath.Ext(path))
 		if ext != ".yaml" && ext != ".yml" {
+			return nil
+		}
+
+		info, statErr := fs.Stat(fsys, path)
+		if statErr == nil && info.Size() > maxRuleFileBytes {
+			warns = append(warns, LoadWarning{Path: path, Err: fmt.Errorf("rule file too large (%d bytes, max %d)", info.Size(), maxRuleFileBytes)})
 			return nil
 		}
 

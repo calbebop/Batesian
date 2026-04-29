@@ -74,6 +74,7 @@ func (e *OAuthDCRExecutor) Execute(ctx context.Context, target string, opts atta
 			RuleID:      e.rule.ID,
 			RuleName:    e.rule.Name,
 			Severity:    "medium",
+			Confidence:  attack.ConfirmedExploit,
 			Title:       "MCP OAuth DCR endpoint accepts unauthenticated client registration",
 			Description: fmt.Sprintf("The OAuth 2.1 dynamic client registration endpoint at %s accepted a new client "+
 				"registration without any Initial Access Token (IAT) or other authentication. "+
@@ -85,7 +86,7 @@ func (e *OAuthDCRExecutor) Execute(ctx context.Context, target string, opts atta
 	}
 
 	// Step 3: Escalated registration — request admin/write scopes.
-	escalatedScope := "tools:read tools:write resources:write admin openid profile email"
+	escalatedScope := "tools:read tools:write resources:write prompts:write admin superuser"
 	escalatedBody := map[string]interface{}{
 		"client_name":    "batesian-probe-" + vars.RandID + "-esc",
 		"redirect_uris":  []string{"https://batesian.invalid/callback"},
@@ -101,6 +102,7 @@ func (e *OAuthDCRExecutor) Execute(ctx context.Context, target string, opts atta
 				RuleID:      e.rule.ID,
 				RuleName:    e.rule.Name,
 				Severity:    "critical",
+				Confidence:  attack.ConfirmedExploit,
 				Title:       "MCP OAuth DCR granted admin/write scopes to unauthenticated client",
 				Description: fmt.Sprintf("The DCR endpoint granted the following scopes to an unauthenticated client: %q. "+
 					"Admin and write scopes should require explicit approval and should not be granted via DCR without "+
@@ -127,6 +129,7 @@ func (e *OAuthDCRExecutor) Execute(ctx context.Context, target string, opts atta
 			RuleID:      e.rule.ID,
 			RuleName:    e.rule.Name,
 			Severity:    "high",
+			Confidence:  attack.ConfirmedExploit,
 			Title:       "MCP OAuth DCR accepted localhost and open-redirect URIs",
 			Description: fmt.Sprintf("The DCR endpoint accepted redirect URIs including localhost (%s) and external domains (%s). "+
 				"Accepting localhost redirect URIs enables token theft on multi-user systems. "+

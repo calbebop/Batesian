@@ -141,12 +141,14 @@ func TestDiscoverTokenURL_RejectsHTTP(t *testing.T) {
 
 func TestDiscoverTokenURL_NoDiscovery(t *testing.T) {
 	// Server has no well-known documents.
+	// Use DiscoverTokenURLWithClient to inject the httptest server without triggering
+	// the HTTPS-only scheme guard in the public DiscoverTokenURL function.
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 	}))
 	defer srv.Close()
 
-	ep := auth.DiscoverTokenURL(context.Background(), srv.URL)
+	ep := auth.DiscoverTokenURLWithClient(context.Background(), srv.URL, &http.Client{})
 	if ep != "" {
 		t.Errorf("expected empty string for server without discovery, got %q", ep)
 	}

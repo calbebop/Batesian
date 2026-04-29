@@ -102,6 +102,9 @@ class TestResults:
         assert len(r.findings) == 1
         assert r.rules_run == 5
         assert r.duration_ms == 1200
+        # Verify confidence flows through from JSON into the Finding object.
+        assert r.findings[0].confidence == "confirmed"
+        assert r.findings[0].is_confirmed is True
 
     def test_from_dict_empty_findings(self):
         r = Results.from_dict({"target": "https://x.com", "findings": []})
