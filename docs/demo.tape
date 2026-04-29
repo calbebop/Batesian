@@ -1,11 +1,9 @@
 # Batesian demo tape
-# Requirements:
-#   - batesian binary in PATH (go install or go build -o bin/batesian ./cmd/batesian)
-#   - python testdata/a2a_vulnerable_server.py running on 127.0.0.1:9998
-#
-# Render:
-#   docker run --rm --network host -v "$PWD:/vhs" ghcr.io/charmbracelet/vhs docs/demo.tape
-#   (Linux/macOS) or via WSL on Windows
+# Render from the repo root on Linux or macOS:
+#   pip install starlette uvicorn httpx
+#   python testdata/a2a_vulnerable_server.py &
+#   go install ./cmd/batesian
+#   vhs docs/demo.tape
 
 Output docs/demo.gif
 
@@ -34,9 +32,7 @@ Sleep 6s
 Sleep 500ms
 Type "batesian scan --target http://127.0.0.1:9998 --protocol a2a --timeout 20"
 Enter
+Sleep 20s
 
-# Give the scan time to run all rules and print findings
-Sleep 18s
-
-# Hold on the final output so viewers can read it
+# Hold on final output so viewers can read findings
 Sleep 3s
