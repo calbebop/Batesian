@@ -26,7 +26,7 @@ it exposes, check spec compliance, and pattern-match for known strings. That app
 useful and catches a real class of problems.
 
 It leaves another class completely untested. Some vulnerabilities only surface when the system
-processes a crafted attack payload -- an abused OAuth registration flow, a push-notification
+processes a crafted attack payload such as an abused OAuth registration flow, a push-notification
 callback pointed at an attacker-controlled host, a JWS signature stripped down to `"alg":"none"`.
 Passive inspection cannot reach these because they require the server to act, not just exist.
 
@@ -42,8 +42,8 @@ See [docs/comparison.md](docs/comparison.md) for a full breakdown against other 
 Batesian ships **18 A2A rules** and **16 MCP rules**, covering SSRF, OAuth abuse, JWS algorithm
 confusion, prompt injection, protocol downgrade, TLS enforcement, and more.
 
-- [A2A rule catalog](docs/rules-a2a.md) -- Agent-to-Agent protocol attacks
-- [MCP rule catalog](docs/rules-mcp.md) -- Model Context Protocol attacks
+- [A2A rule catalog](docs/rules-a2a.md) — Agent-to-Agent protocol attacks
+- [MCP rule catalog](docs/rules-mcp.md) — Model Context Protocol attacks
 
 Each finding is classified as `confirmed` (exploit succeeded) or `indicator` (behavioral signal
 warranting manual review). All rules ship with CWE references and remediation guidance.
@@ -91,7 +91,7 @@ batesian init
 ## Rule packs
 
 Attack rules are YAML files. Anyone can write new attack patterns without touching Go. Rules load
-at runtime -- no recompilation needed. See [CONTRIBUTING.md](CONTRIBUTING.md) for the full
+at runtime thus no recompilation needed. See [CONTRIBUTING.md](CONTRIBUTING.md) for the full
 authoring guide including the rule schema, validation checklist, and testing requirements.
 
 ---
