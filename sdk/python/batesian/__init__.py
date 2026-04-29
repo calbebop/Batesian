@@ -22,4 +22,4 @@ from batesian._models import Results, Finding, ScanError
 from batesian._binary import find_binary, BinaryNotFoundError
 
 __all__ = ["Scanner", "Results", "Finding", "ScanError", "find_binary", "BinaryNotFoundError"]
-__version__ = "1.0.0"
+__version__ = "0.1.0"

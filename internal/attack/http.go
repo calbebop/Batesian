@@ -15,6 +15,11 @@ import (
 
 const maxBody = 1 << 20 // 1 MB
 
+// Version is the build-time version string injected from main via attack.Version.
+// It is embedded in the User-Agent header on every outbound HTTP request.
+// Defaults to "dev" so go run / unit tests have a useful value.
+var Version = "dev"
+
 // HTTPClient is a thin wrapper around net/http.Client with helpers for attack requests.
 type HTTPClient struct {
 	inner *http.Client
@@ -150,7 +155,7 @@ func (c *HTTPClient) do(ctx context.Context, method, url string, body io.Reader,
 	if err != nil {
 		return nil, fmt.Errorf("building %s %s: %w", method, url, err)
 	}
-	req.Header.Set("User-Agent", "batesian/dev (https://github.com/calvin-mcdowell/batesian)")
+	req.Header.Set("User-Agent", "batesian/"+Version+" (https://github.com/calvin-mcdowell/batesian)")
 	// MCP streamable HTTP requires text/event-stream in Accept; A2A servers ignore it.
 	req.Header.Set("Accept", "application/json, text/event-stream")
 	// Inject the bearer token unless the caller overrides Authorization explicitly.

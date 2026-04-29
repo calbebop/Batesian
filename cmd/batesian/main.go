@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/calvin-mcdowell/batesian/internal/cli"
@@ -17,6 +18,7 @@ var (
 func main() {
 	cli.SetVersion(version, commit, date)
 	if err := cli.Execute(); err != nil {
+		fmt.Fprintf(os.Stderr, "error: %v\n", err)
 		os.Exit(1)
 	}
 }

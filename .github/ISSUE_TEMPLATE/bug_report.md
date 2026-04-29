@@ -15,7 +15,8 @@ labels: bug
 **Actual behavior**
 
 **Environment**
-- Batesian version:
+- Batesian version: <!-- `batesian --version` -->
 - OS:
-- Go version:
+- Go version: <!-- `go version`, only if building from source -->
+- Python SDK version: <!-- `python -c "import batesian; print(batesian.__version__)"`, only if using the SDK -->
 - Target protocol (A2A/MCP):

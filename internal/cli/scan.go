@@ -57,11 +57,15 @@ func init() {
 	scanCmd.Flags().String("oob-url", "", "External OOB server URL (overrides --oob local listener)")
 	scanCmd.Flags().String("config", "", "Path to batesian.yaml config file (default: auto-discover)")
 	// OAuth 2.0 flags for automatic token acquisition.
-	scanCmd.Flags().String("token-url", "", "OAuth 2.0 token endpoint URL for client credentials flow")
-	scanCmd.Flags().String("client-id", "", "OAuth 2.0 client ID (used with --token-url)")
-	scanCmd.Flags().String("client-secret", "", "OAuth 2.0 client secret (used with --token-url)")
+	scanCmd.Flags().String("token-url", "", "OAuth 2.0 token endpoint URL")
+	scanCmd.Flags().String("client-id", "", "OAuth 2.0 client ID (used with --token-url or --auth-url)")
+	scanCmd.Flags().String("client-secret", "", "OAuth 2.0 client secret (client credentials flow only)")
 	scanCmd.Flags().StringSlice("oauth-scopes", nil, "OAuth 2.0 scopes to request (comma-separated)")
-	scanCmd.Flags().String("oauth-audience", "", "OAuth 2.0 audience (used with --token-url; for Auth0/Okta)")
+	scanCmd.Flags().String("oauth-audience", "", "OAuth 2.0 audience (Auth0/Okta-style)")
+	// PKCE authorization code flow (interactive; opens a browser for user consent).
+	scanCmd.Flags().String("auth-url", "", "OAuth 2.0 authorization endpoint URL (enables PKCE flow)")
+	scanCmd.Flags().Int("redirect-port", 9876, "Local TCP port for the OAuth callback listener (PKCE flow)")
+	scanCmd.Flags().Bool("no-browser", false, "Do not auto-open the browser for PKCE consent (print URL only)")
 	rootCmd.AddCommand(scanCmd)
 }
 
@@ -126,17 +130,29 @@ func runScan(cmd *cobra.Command, args []string) error {
 
 	if token == "" {
 		tokenURL, _ := cmd.Flags().GetString("token-url")
+		authURL, _ := cmd.Flags().GetString("auth-url")
 		clientID, _ := cmd.Flags().GetString("client-id")
 		clientSecret, _ := cmd.Flags().GetString("client-secret")
 		oauthScopes, _ := cmd.Flags().GetStringSlice("oauth-scopes")
 		oauthAudience, _ := cmd.Flags().GetString("oauth-audience")
+		redirectPort, _ := cmd.Flags().GetInt("redirect-port")
+		noBrowser, _ := cmd.Flags().GetBool("no-browser")
 
-		if clientID != "" && tokenURL != "" {
+		switch {
+		case authURL != "" && clientID != "" && tokenURL != "":
+			tok, err := fetchOAuthTokenPKCE(context.Background(), authURL, tokenURL, clientID, oauthScopes, oauthAudience, redirectPort, !noBrowser)
+			if err != nil {
+				return fmt.Errorf("OAuth PKCE flow failed: %w", err)
+			}
+			token = tok
+		case clientID != "" && tokenURL != "":
 			tok, err := fetchOAuthToken(context.Background(), tokenURL, clientID, clientSecret, oauthScopes, oauthAudience)
 			if err != nil {
 				return fmt.Errorf("OAuth token acquisition failed: %w", err)
 			}
 			token = tok
+		case authURL != "" && (clientID == "" || tokenURL == ""):
+			return fmt.Errorf("--auth-url requires --client-id and --token-url for the PKCE flow")
 		}
 	}
 
@@ -265,6 +281,29 @@ func fetchOAuthToken(ctx context.Context, tokenURL, clientID, clientSecret strin
 		ClientSecret: clientSecret,
 		Scopes:       scopes,
 		Audience:     audience,
+	})
+	if err != nil {
+		return "", err
+	}
+	return tok.AccessToken, nil
+}
+
+// fetchOAuthTokenPKCE drives the interactive PKCE flow: opens a browser, listens
+// for the OAuth callback on 127.0.0.1, and exchanges the returned code at the
+// token endpoint. Status messages are printed to stderr so JSON/SARIF output
+// on stdout stays clean.
+func fetchOAuthTokenPKCE(ctx context.Context, authURL, tokenURL, clientID string, scopes []string, audience string, redirectPort int, openBrowser bool) (string, error) {
+	tok, err := auth.PerformPKCEFlow(ctx, auth.PKCEFlowConfig{
+		AuthURL:      authURL,
+		TokenURL:     tokenURL,
+		ClientID:     clientID,
+		Scopes:       scopes,
+		Audience:     audience,
+		RedirectPort: redirectPort,
+		OpenBrowser:  openBrowser,
+		Logger: func(format string, args ...interface{}) {
+			fmt.Fprintf(os.Stderr, format+"\n", args...)
+		},
 	})
 	if err != nil {
 		return "", err

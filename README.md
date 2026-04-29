@@ -75,6 +75,13 @@ batesian scan --target https://mcp.example.com \
   --client-secret "$CLIENT_SECRET" \
   --oauth-scopes mcp:read,mcp:write
 
+# Scan with OAuth 2.0 authorization code + PKCE (interactive; opens browser)
+batesian scan --target https://mcp.example.com \
+  --auth-url https://auth.example.com/authorize \
+  --token-url https://auth.example.com/oauth/token \
+  --client-id my-client \
+  --oauth-scopes mcp:read
+
 # Generate an annotated batesian.yaml config file
 batesian init
 ```
