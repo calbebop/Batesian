@@ -35,7 +35,7 @@ type LoadWarning struct {
 
 // Filter holds criteria for selecting a subset of loaded rules.
 type Filter struct {
-	Protocols []string // empty = all
+	Protocols  []string // empty = all
 	Severities []string // empty = all
 	Tags       []string // empty = all
 	IDs        []string // empty = all

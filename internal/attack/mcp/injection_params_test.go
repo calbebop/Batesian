@@ -11,7 +11,7 @@ import (
 	mcpattack "github.com/calvin-mcdowell/batesian/internal/attack/mcp"
 )
 
-func injectionMCPBase(t *testing.T, toolCallHandler func(http.ResponseWriter, map[string]interface{})) *httptest.Server {
+func injectionMCPBase(_ *testing.T, toolCallHandler func(http.ResponseWriter, map[string]interface{})) *httptest.Server {
 	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		var req map[string]interface{}

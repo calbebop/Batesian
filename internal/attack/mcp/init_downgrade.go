@@ -33,8 +33,8 @@ func (e *InitDowngradeExecutor) Execute(ctx context.Context, target string, opts
 	endpoints := endpointCandidates(vars.BaseURL)
 
 	for _, ep := range endpoints {
-		findings, err := e.probeEndpoint(ctx, client, ep)
-		if err != nil || findings == nil {
+		findings := e.probeEndpoint(ctx, client, ep)
+		if findings == nil {
 			continue
 		}
 		return findings, nil
@@ -42,7 +42,7 @@ func (e *InitDowngradeExecutor) Execute(ctx context.Context, target string, opts
 	return nil, nil
 }
 
-func (e *InitDowngradeExecutor) probeEndpoint(ctx context.Context, client *attack.HTTPClient, ep string) ([]attack.Finding, error) {
+func (e *InitDowngradeExecutor) probeEndpoint(ctx context.Context, client *attack.HTTPClient, ep string) []attack.Finding {
 	// Step 1: send initialize with the legacy pre-auth protocol version.
 	initResp, err := client.POST(ctx, ep, nil, map[string]interface{}{
 		"jsonrpc": "2.0",
@@ -55,19 +55,19 @@ func (e *InitDowngradeExecutor) probeEndpoint(ctx context.Context, client *attac
 		},
 	})
 	if err != nil || !initResp.IsSuccess() {
-		return nil, nil
+		return nil
 	}
 
 	body := initResp.BodyString()
 
-	// Server rejected the version explicitly — not vulnerable.
+	// Server rejected the version explicitly -- not vulnerable.
 	if strings.Contains(body, `"error"`) && !strings.Contains(body, `"protocolVersion"`) {
-		return nil, nil
+		return nil
 	}
 
 	// Must look like a real MCP initialize response.
 	if !initResp.ContainsAny(`"protocolVersion"`, `"serverInfo"`, `"capabilities"`) {
-		return nil, nil
+		return nil
 	}
 
 	// Parse what version the server actually negotiated back.
@@ -88,9 +88,9 @@ func (e *InitDowngradeExecutor) probeEndpoint(ctx context.Context, client *attac
 	var findings []attack.Finding
 
 	findings = append(findings, attack.Finding{
-		RuleID:   e.rule.ID,
-		RuleName: e.rule.Name,
-		Severity: "high",
+		RuleID:     e.rule.ID,
+		RuleName:   e.rule.Name,
+		Severity:   "high",
 		Confidence: attack.RiskIndicator,
 		Title: fmt.Sprintf(
 			"MCP server accepted legacy protocol version %q (expected rejection)", legacyVersion),
@@ -119,9 +119,9 @@ func (e *InitDowngradeExecutor) probeEndpoint(ctx context.Context, client *attac
 			if result, ok := rb["result"].(map[string]interface{}); ok {
 				if resources, ok := result["resources"].([]interface{}); ok && len(resources) > 0 {
 					findings = append(findings, attack.Finding{
-						RuleID:   e.rule.ID,
-						RuleName: e.rule.Name,
-						Severity: "critical",
+						RuleID:     e.rule.ID,
+						RuleName:   e.rule.Name,
+						Severity:   "critical",
 						Confidence: attack.ConfirmedExploit,
 						Title: fmt.Sprintf(
 							"resources/list returned %d resource(s) after protocol version downgrade to %q",
@@ -141,5 +141,5 @@ func (e *InitDowngradeExecutor) probeEndpoint(ctx context.Context, client *attac
 		}
 	}
 
-	return findings, nil
+	return findings
 }

@@ -56,9 +56,9 @@ const (
 
 // Finding represents a confirmed vulnerability or notable observation.
 type Finding struct {
-	RuleID      string
-	RuleName    string
-	Severity    string
+	RuleID   string
+	RuleName string
+	Severity string
 	// Confidence describes whether the finding is a confirmed exploit or a risk indicator.
 	// Confirmed findings: the attack demonstrably succeeded (auth bypass proven, data returned).
 	// Indicator findings: a suspicious pattern was detected; manual verification recommended.

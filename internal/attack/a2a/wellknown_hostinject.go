@@ -79,9 +79,9 @@ func (e *WellKnownHostInjectExecutor) Execute(ctx context.Context, target string
 			seen[key] = true
 
 			findings = append(findings, attack.Finding{
-				RuleID:   e.rule.ID,
-				RuleName: e.rule.Name,
-				Severity: "high",
+				RuleID:     e.rule.ID,
+				RuleName:   e.rule.Name,
+				Severity:   "high",
 				Confidence: attack.ConfirmedExploit,
 				Title: fmt.Sprintf(
 					"A2A Agent Card reflects %q header value in field(s): %s",

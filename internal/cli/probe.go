@@ -172,15 +172,15 @@ func probeA2A(target, token string, timeoutSecs int, skipTLS bool, format report
 // cardToProbeResult converts an AgentCard to a printable ProbeResult.
 func cardToProbeResult(card *a2a.AgentCard, elapsed time.Duration) *report.ProbeResult {
 	r := &report.ProbeResult{
-		Name:              card.Name,
-		Description:       card.Description,
-		URL:               card.GetServiceURL(),
-		Version:           card.Version,
-		Streaming:         card.Capabilities.Streaming,
-		PushNotifications: card.Capabilities.PushNotifications,
+		Name:                  card.Name,
+		Description:           card.Description,
+		URL:                   card.GetServiceURL(),
+		Version:               card.Version,
+		Streaming:             card.Capabilities.Streaming,
+		PushNotifications:     card.Capabilities.PushNotifications,
 		ExtendedCardAvailable: card.Capabilities.ExtendedAgentCard,
-		AuthRequired:      len(card.SecurityRequirements) > 0,
-		Elapsed:           elapsed,
+		AuthRequired:          len(card.SecurityRequirements) > 0,
+		Elapsed:               elapsed,
 	}
 
 	if card.Provider != nil {
@@ -360,4 +360,3 @@ func buildJSONOutput(card *a2a.AgentCard, result *report.ProbeResult) map[string
 		"response_time": result.Elapsed.String(),
 	}
 }
-

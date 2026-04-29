@@ -14,11 +14,11 @@ var credentialPatterns = []*regexp.Regexp{
 	regexp.MustCompile(`(?i)AKIA[0-9A-Z]{16}`),                              // AWS access key
 	regexp.MustCompile(`(?i)sk-[a-zA-Z0-9]{32,}`),                           // OpenAI API key
 	regexp.MustCompile(`(?i)(api[_-]?key|api[_-]?secret)\s*[=:]\s*\S{10,}`), // Generic API key
-	regexp.MustCompile(`(?i)(password|passwd|pwd)\s*[=:]\s*\S{6,}`),          // Password
-	regexp.MustCompile(`-----BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY-----`),    // Private keys
+	regexp.MustCompile(`(?i)(password|passwd|pwd)\s*[=:]\s*\S{6,}`),         // Password
+	regexp.MustCompile(`-----BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY-----`),   // Private keys
 	regexp.MustCompile(`(?i)ghp_[a-zA-Z0-9]{36}`),                           // GitHub token
-	regexp.MustCompile(`(?i)(bearer|authorization)\s*[=:]\s*\S{10,}`),        // Bearer/auth token
-	regexp.MustCompile(`(?i)eyJ[A-Za-z0-9-_]{10,}\.[A-Za-z0-9-_]{10,}`),    // JWT
+	regexp.MustCompile(`(?i)(bearer|authorization)\s*[=:]\s*\S{10,}`),       // Bearer/auth token
+	regexp.MustCompile(`(?i)eyJ[A-Za-z0-9-_]{10,}\.[A-Za-z0-9-_]{10,}`),     // JWT
 }
 
 // ResourcesUnauthExecutor probes MCP resources/list and resources/read without

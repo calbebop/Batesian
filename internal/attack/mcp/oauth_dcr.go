@@ -74,15 +74,15 @@ func (e *OAuthDCRExecutor) Execute(ctx context.Context, target string, opts atta
 	// A successful DCR returns HTTP 201 Created.
 	if baselineResp.StatusCode == 200 || baselineResp.StatusCode == 201 {
 		findings = append(findings, attack.Finding{
-			RuleID:      e.rule.ID,
-			RuleName:    e.rule.Name,
-			Severity:    "medium",
-			Confidence:  attack.ConfirmedExploit,
-			Title:       "MCP OAuth DCR endpoint accepts unauthenticated client registration",
+			RuleID:     e.rule.ID,
+			RuleName:   e.rule.Name,
+			Severity:   "medium",
+			Confidence: attack.ConfirmedExploit,
+			Title:      "MCP OAuth DCR endpoint accepts unauthenticated client registration",
 			Description: fmt.Sprintf("The OAuth 2.1 dynamic client registration endpoint at %s accepted a new client "+
 				"registration without any Initial Access Token (IAT) or other authentication. "+
 				"Per RFC 7591, unauthenticated DCR allows any party to register OAuth clients.", registrationEndpoint),
-			Evidence:    fmt.Sprintf("HTTP %d from %s\n%s", baselineResp.StatusCode, registrationEndpoint, snippetMCP(baselineResp.Body, 300)),
+			Evidence:    fmt.Sprintf("HTTP %d from %s\n%s", baselineResp.StatusCode, registrationEndpoint, snippetMCP(baselineResp.Body)),
 			Remediation: e.rule.Remediation,
 			TargetURL:   registrationEndpoint,
 		})
@@ -102,15 +102,15 @@ func (e *OAuthDCRExecutor) Execute(ctx context.Context, target string, opts atta
 		grantedScope := escalatedResp.JSONField("scope")
 		if hasAdminScope(grantedScope) {
 			findings = append(findings, attack.Finding{
-				RuleID:      e.rule.ID,
-				RuleName:    e.rule.Name,
-				Severity:    "critical",
-				Confidence:  attack.ConfirmedExploit,
-				Title:       "MCP OAuth DCR granted admin/write scopes to unauthenticated client",
+				RuleID:     e.rule.ID,
+				RuleName:   e.rule.Name,
+				Severity:   "critical",
+				Confidence: attack.ConfirmedExploit,
+				Title:      "MCP OAuth DCR granted admin/write scopes to unauthenticated client",
 				Description: fmt.Sprintf("The DCR endpoint granted the following scopes to an unauthenticated client: %q. "+
 					"Admin and write scopes should require explicit approval and should not be granted via DCR without "+
 					"an Initial Access Token. An attacker can use this to obtain tokens with full write access.", grantedScope),
-				Evidence:    fmt.Sprintf("Requested: %q\nGranted: %q\nHTTP %d from %s\n%s", escalatedScope, grantedScope, escalatedResp.StatusCode, registrationEndpoint, snippetMCP(escalatedResp.Body, 300)),
+				Evidence:    fmt.Sprintf("Requested: %q\nGranted: %q\nHTTP %d from %s\n%s", escalatedScope, grantedScope, escalatedResp.StatusCode, registrationEndpoint, snippetMCP(escalatedResp.Body)),
 				Remediation: e.rule.Remediation,
 				TargetURL:   registrationEndpoint,
 			})
@@ -129,16 +129,16 @@ func (e *OAuthDCRExecutor) Execute(ctx context.Context, target string, opts atta
 	redirectResp, err := unauthClient.POST(ctx, registrationEndpoint, nil, redirectBody)
 	if err == nil && (redirectResp.StatusCode == 200 || redirectResp.StatusCode == 201) {
 		findings = append(findings, attack.Finding{
-			RuleID:      e.rule.ID,
-			RuleName:    e.rule.Name,
-			Severity:    "high",
-			Confidence:  attack.ConfirmedExploit,
-			Title:       "MCP OAuth DCR accepted localhost and open-redirect URIs",
+			RuleID:     e.rule.ID,
+			RuleName:   e.rule.Name,
+			Severity:   "high",
+			Confidence: attack.ConfirmedExploit,
+			Title:      "MCP OAuth DCR accepted localhost and open-redirect URIs",
 			Description: fmt.Sprintf("The DCR endpoint accepted redirect URIs including localhost (%s) and external domains (%s). "+
 				"Accepting localhost redirect URIs enables token theft on multi-user systems. "+
 				"Accepting arbitrary external domains enables open-redirect attacks in OAuth flows.",
 				"http://localhost/steal", "https://evil.example.com/callback"),
-			Evidence:    fmt.Sprintf("Submitted redirect_uris: %v\nHTTP %d\n%s", append([]string{"https://batesian.invalid/callback"}, maliciousRedirects...), redirectResp.StatusCode, snippetMCP(redirectResp.Body, 300)),
+			Evidence:    fmt.Sprintf("Submitted redirect_uris: %v\nHTTP %d\n%s", append([]string{"https://batesian.invalid/callback"}, maliciousRedirects...), redirectResp.StatusCode, snippetMCP(redirectResp.Body)),
 			Remediation: e.rule.Remediation,
 			TargetURL:   registrationEndpoint,
 		})
@@ -178,9 +178,10 @@ func hasAdminScope(grantedScope string) bool {
 	return false
 }
 
-func snippetMCP(body []byte, n int) string {
-	if len(body) > n {
-		return string(body[:n]) + "..."
+func snippetMCP(body []byte) string {
+	const maxLen = 300
+	if len(body) > maxLen {
+		return string(body[:maxLen]) + "..."
 	}
 	return string(body)
 }

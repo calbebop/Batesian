@@ -82,8 +82,8 @@ func (e *CircularDelegationExecutor) oobProbe(
 				w.WriteHeader(http.StatusOK)
 			}),
 		}
-		go srv.Serve(ln)
-		defer srv.Close()
+		go func() { _ = srv.Serve(ln) }()
+		defer func() { _ = srv.Close() }()
 	}
 
 	resp, err := client.POST(ctx, ep, nil, map[string]interface{}{
@@ -213,6 +213,6 @@ func addrPort(addr string) int {
 		return 0
 	}
 	port := 0
-	fmt.Sscanf(portStr, "%d", &port)
+	_, _ = fmt.Sscanf(portStr, "%d", &port)
 	return port
 }

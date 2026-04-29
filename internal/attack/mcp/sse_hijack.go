@@ -76,7 +76,7 @@ func (e *SSEHijackExecutor) Execute(ctx context.Context, target string, opts att
 			strings.Contains(bodyStr, `"jsonrpc"`)
 
 		severity := "high"
-		confidence := attack.ConfirmedExploit
+		var confidence attack.Confidence
 		title := fmt.Sprintf("MCP SSE stream at %s accepted without authentication (HTTP %d)", ep, resp.StatusCode)
 		description := fmt.Sprintf(
 			"A GET request to %s with Accept: text/event-stream and no Authorization header "+

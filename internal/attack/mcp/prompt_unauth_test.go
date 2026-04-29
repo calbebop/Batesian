@@ -1,4 +1,4 @@
-﻿package mcp_test
+package mcp_test
 
 import (
 	"context"
@@ -106,7 +106,7 @@ func TestPromptUnauth_AuthEnforced(t *testing.T) {
 		default:
 			json.NewEncoder(w).Encode(map[string]interface{}{
 				"jsonrpc": "2.0", "id": req["id"],
-				"error":   map[string]interface{}{"code": -32001, "message": "Unauthorized"},
+				"error": map[string]interface{}{"code": -32001, "message": "Unauthorized"},
 			})
 		}
 	}))

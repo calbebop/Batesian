@@ -366,8 +366,8 @@ type MCPResourceSummary struct {
 
 // MCPPromptSummary is a condensed view of an MCP prompt template.
 type MCPPromptSummary struct {
-	Name      string
-	ArgCount  int
+	Name        string
+	ArgCount    int
 	HasRequired bool
 }
 

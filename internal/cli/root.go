@@ -6,17 +6,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var (
-	buildVersion = "dev"
-	buildCommit  = "none"
-	buildDate    = "unknown"
-)
-
 // SetVersion injects build-time version metadata, called from main.
 func SetVersion(version, commit, date string) {
-	buildVersion = version
-	buildCommit = commit
-	buildDate = date
 	rootCmd.Version = fmt.Sprintf("%s (commit %s, built %s)", version, commit, date)
 }
 

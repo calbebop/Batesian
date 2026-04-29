@@ -10,7 +10,7 @@ import (
 	a2aattack "github.com/calvin-mcdowell/batesian/internal/attack/a2a"
 )
 
-func agentCardHandler(w http.ResponseWriter, r *http.Request) {
+func agentCardHandler(w http.ResponseWriter, _ *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Write([]byte(`{"name":"Test Agent","version":"1.0"}`))
 }

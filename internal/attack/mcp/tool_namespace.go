@@ -51,9 +51,9 @@ func (e *ToolNamespaceExecutor) Execute(ctx context.Context, target string, opts
 	// Check for count mismatch
 	if len(toolsA) != len(toolsB) {
 		findings = append(findings, attack.Finding{
-			RuleID:   e.rule.ID,
-			RuleName: e.rule.Name,
-			Severity: "high",
+			RuleID:     e.rule.ID,
+			RuleName:   e.rule.Name,
+			Severity:   "high",
 			Confidence: attack.ConfirmedExploit,
 			Title: fmt.Sprintf(
 				"MCP tools/list returned different tool counts across sessions (%d vs %d)",

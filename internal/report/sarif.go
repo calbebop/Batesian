@@ -56,10 +56,10 @@ type sarifRuleProperties struct {
 }
 
 type sarifResult struct {
-	RuleID    string          `json:"ruleId"`
-	Level     string          `json:"level"` // error, warning, note, none
-	Message   sarifMessage    `json:"message"`
-	Locations []sarifLocation `json:"locations"`
+	RuleID     string            `json:"ruleId"`
+	Level      string            `json:"level"` // error, warning, note, none
+	Message    sarifMessage      `json:"message"`
+	Locations  []sarifLocation   `json:"locations"`
 	Properties map[string]string `json:"properties,omitempty"`
 }
 
@@ -76,8 +76,8 @@ type sarifPhysicalLocation struct {
 }
 
 type sarifArtifactLocation struct {
-	URI         string `json:"uri"`
-	URIBaseID   string `json:"uriBaseId,omitempty"`
+	URI         string        `json:"uri"`
+	URIBaseID   string        `json:"uriBaseId,omitempty"`
 	Description *sarifMessage `json:"description,omitempty"`
 }
 
@@ -113,7 +113,7 @@ func buildSARIF(target string, results []engine.RunResult, toolVersion string) s
 			}
 		}
 		for _, f := range r.Findings {
-			sarifResults = append(sarifResults, findingToSARIF(f, target))
+			sarifResults = append(sarifResults, findingToSARIF(f))
 		}
 	}
 
@@ -152,7 +152,7 @@ func buildSARIF(target string, results []engine.RunResult, toolVersion string) s
 }
 
 // findingToSARIF converts a Finding into a SARIF result.
-func findingToSARIF(f attackpkg.Finding, target string) sarifResult {
+func findingToSARIF(f attackpkg.Finding) sarifResult {
 	confidence := string(f.Confidence)
 	if confidence == "" {
 		confidence = "confirmed"

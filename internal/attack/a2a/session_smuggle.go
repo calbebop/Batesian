@@ -119,12 +119,12 @@ func (e *SessionSmuggleExecutor) Execute(ctx context.Context, target string, opt
 				})
 				if err == nil && leakResp.IsSuccess() && !isJSONRPCError(leakResp.Body) &&
 					leakResp.ContainsAny(`"history"`, contextID) {
-				findings = append(findings, attack.Finding{
-					RuleID:     e.rule.ID,
-					RuleName:   e.rule.Name,
-					Severity:   "medium",
-					Confidence: attack.ConfirmedExploit,
-					Title:      "A2A task history accessible across session boundaries",
+					findings = append(findings, attack.Finding{
+						RuleID:     e.rule.ID,
+						RuleName:   e.rule.Name,
+						Severity:   "medium",
+						Confidence: attack.ConfirmedExploit,
+						Title:      "A2A task history accessible across session boundaries",
 						Description: fmt.Sprintf(
 							"Task %s (contextId %s) was retrieved with full history by a request "+
 								"that did not present the original session credentials. Any caller "+

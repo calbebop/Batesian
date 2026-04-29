@@ -12,7 +12,7 @@ import (
 	mcpattack "github.com/calvin-mcdowell/batesian/internal/attack/mcp"
 )
 
-func mcpInitHandler(w http.ResponseWriter, r *http.Request, req map[string]interface{}) {
+func mcpInitHandler(w http.ResponseWriter, _ *http.Request, req map[string]interface{}) {
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"jsonrpc": "2.0", "id": req["id"],
 		"result": map[string]interface{}{
@@ -23,7 +23,7 @@ func mcpInitHandler(w http.ResponseWriter, r *http.Request, req map[string]inter
 	})
 }
 
-func mcpToolsListHandler(w http.ResponseWriter, r *http.Request, req map[string]interface{}) {
+func mcpToolsListHandler(w http.ResponseWriter, _ *http.Request, req map[string]interface{}) {
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"jsonrpc": "2.0", "id": req["id"],
 		"result": map[string]interface{}{

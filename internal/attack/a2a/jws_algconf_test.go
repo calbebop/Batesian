@@ -28,11 +28,11 @@ func TestJWSAlgConfExecutor_AlgNone(t *testing.T) {
 	})
 
 	card := map[string]interface{}{
-		"name":        "Test Agent",
-		"description": "Agent with weak JWS",
-		"version":     "1.0",
+		"name":         "Test Agent",
+		"description":  "Agent with weak JWS",
+		"version":      "1.0",
 		"capabilities": map[string]interface{}{},
-		"skills":      []interface{}{},
+		"skills":       []interface{}{},
 		"signatures": []interface{}{
 			map[string]interface{}{
 				"protected": protected,
@@ -84,13 +84,13 @@ func TestJWSAlgConfExecutor_AlgNone(t *testing.T) {
 // info-level finding.
 func TestJWSAlgConfExecutor_NoSignatures(t *testing.T) {
 	card := map[string]interface{}{
-		"name":                               "Test Agent",
-		"description":                        "Agent with no signatures",
-		"version":                            "1.0",
-		"capabilities":                       map[string]interface{}{},
-		"skills":                             []interface{}{},
-		"defaultInputModes":                  []string{"text"},
-		"supportsAuthenticatedExtendedCard":   true,
+		"name":                              "Test Agent",
+		"description":                       "Agent with no signatures",
+		"version":                           "1.0",
+		"capabilities":                      map[string]interface{}{},
+		"skills":                            []interface{}{},
+		"defaultInputModes":                 []string{"text"},
+		"supportsAuthenticatedExtendedCard": true,
 	}
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

@@ -92,9 +92,9 @@ func (e *TokenReplayExecutor) Execute(ctx context.Context, target string, opts a
 
 	probes := []probe{
 		{
-			name:     "no-aud",
-			token:    noAudToken,
-			severity: "high",
+			name:      "no-aud",
+			token:     noAudToken,
+			severity:  "high",
 			titleSufx: "accepted JWT with missing aud claim",
 			descSufx: "The server accepted a bearer token that carries no `aud` (audience) claim. " +
 				"Per RFC 9068, a resource server must reject tokens where the audience is absent " +
@@ -102,18 +102,18 @@ func (e *TokenReplayExecutor) Execute(ctx context.Context, target string, opts a
 				"service can be replayed against this server.",
 		},
 		{
-			name:     "wrong-aud",
-			token:    wrongAudToken,
-			severity: "high",
+			name:      "wrong-aud",
+			token:     wrongAudToken,
+			severity:  "high",
 			titleSufx: "accepted JWT with wrong aud claim",
 			descSufx: "The server accepted a bearer token whose `aud` claim names a completely " +
 				"different resource server (https://wrong-server.example.com). This means tokens " +
 				"issued for unrelated services can be replayed against this MCP endpoint.",
 		},
 		{
-			name:     "alg-none",
-			token:    algNoneToken,
-			severity: "critical",
+			name:      "alg-none",
+			token:     algNoneToken,
+			severity:  "critical",
 			titleSufx: "accepted unsigned JWT (alg:none)",
 			descSufx: "The server accepted a JWT with `alg:none` and an empty signature. " +
 				"This completely bypasses cryptographic token verification: any attacker can " +
@@ -147,7 +147,7 @@ func (e *TokenReplayExecutor) Execute(ctx context.Context, target string, opts a
 					Description: p.descSufx,
 					Evidence: fmt.Sprintf(
 						"probe: %s\ntoken header.payload: %s...[signature omitted]\nHTTP %d from %s\n%s",
-						p.name, jwtHeaderPayload(p.token), resp.StatusCode, ep, snippetMCP(resp.Body, 300),
+						p.name, jwtHeaderPayload(p.token), resp.StatusCode, ep, snippetMCP(resp.Body),
 					),
 					Remediation: e.rule.Remediation,
 					TargetURL:   ep,

@@ -91,12 +91,12 @@ func (e *SecurityHeadersExecutor) Execute(ctx context.Context, target string, op
 
 		for _, hdr := range requiredA2AHeaders {
 			if !hdr.check(headers) {
-			findings = append(findings, attack.Finding{
-				RuleID:     e.rule.ID,
-				RuleName:   e.rule.Name,
-				Severity:   hdr.severity,
-				Confidence: attack.RiskIndicator,
-				Title:      fmt.Sprintf("A2A endpoint missing %s header", hdr.name),
+				findings = append(findings, attack.Finding{
+					RuleID:     e.rule.ID,
+					RuleName:   e.rule.Name,
+					Severity:   hdr.severity,
+					Confidence: attack.RiskIndicator,
+					Title:      fmt.Sprintf("A2A endpoint missing %s header", hdr.name),
 					Description: fmt.Sprintf(
 						"%s on %s (HTTP %d). %s",
 						hdr.description, endpoint, resp.StatusCode,

@@ -87,9 +87,9 @@ func (e *PromptUnauthExecutor) Execute(ctx context.Context, target string, opts 
 	var findings []attack.Finding
 
 	findings = append(findings, attack.Finding{
-		RuleID:   e.rule.ID,
-		RuleName: e.rule.Name,
-		Severity: "medium",
+		RuleID:     e.rule.ID,
+		RuleName:   e.rule.Name,
+		Severity:   "medium",
 		Confidence: attack.ConfirmedExploit,
 		Title: fmt.Sprintf(
 			"MCP prompts/list returned %d template(s) without authentication", len(names)),
@@ -129,9 +129,9 @@ func (e *PromptUnauthExecutor) Execute(ctx context.Context, target string, opts 
 
 	content := string(getResp.Body)
 	findings = append(findings, attack.Finding{
-		RuleID:   e.rule.ID,
-		RuleName: e.rule.Name,
-		Severity: "high",
+		RuleID:     e.rule.ID,
+		RuleName:   e.rule.Name,
+		Severity:   "high",
 		Confidence: attack.ConfirmedExploit,
 		Title: fmt.Sprintf(
 			"MCP prompt %q full content readable without authentication", names[0]),

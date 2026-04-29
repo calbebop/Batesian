@@ -1,3 +1,4 @@
+// Package cli implements the batesian command-line interface.
 package cli
 
 import (

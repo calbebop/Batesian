@@ -12,27 +12,6 @@ import (
 	"github.com/calvin-mcdowell/batesian/internal/attack/a2a"
 )
 
-// parseJSONRPCMethod reads the method field from a JSON-RPC request body.
-func parseJSONRPCMethod(r *http.Request) (method string, id interface{}) {
-	body, err := io.ReadAll(r.Body)
-	if err != nil {
-		return "", nil
-	}
-	var req map[string]interface{}
-	if err := json.Unmarshal(body, &req); err != nil {
-		return "", nil
-	}
-	method, _ = req["method"].(string)
-	id = req["id"]
-
-	// Inspect the nested message role for session smuggle detection.
-	if params, ok := req["params"].(map[string]interface{}); ok {
-		if msg, ok := params["message"].(map[string]interface{}); ok {
-			_ = msg // caller can inspect req directly if needed
-		}
-	}
-	return method, id
-}
 
 // TestSessionSmuggleExecutor_RoleInjectionAccepted verifies that when the
 // server accepts a SendMessage with role=2 (AGENT) and returns a valid task

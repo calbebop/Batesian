@@ -6,11 +6,11 @@ package a2a
 // Served at GET /.well-known/agent-card.json (v1.0) or /.well-known/agent.json (v0.3 legacy).
 type AgentCard struct {
 	// Required fields (v1.0)
-	Name        string           `json:"name"`
-	Description string           `json:"description"`
-	Version     string           `json:"version"`
+	Name         string            `json:"name"`
+	Description  string            `json:"description"`
+	Version      string            `json:"version"`
 	Capabilities AgentCapabilities `json:"capabilities"`
-	Skills      []AgentSkill     `json:"skills"`
+	Skills       []AgentSkill      `json:"skills"`
 
 	// SupportedInterfaces lists the A2A service endpoints for this agent (v1.0).
 	// The first entry is the preferred endpoint.
@@ -139,7 +139,7 @@ type HTTPAuthSecurityScheme struct {
 // OAuth2SecurityScheme describes OAuth 2.0 flows.
 type OAuth2SecurityScheme struct {
 	Description       string     `json:"description,omitempty"`
-	Flows             OAuthFlows `json:"flows"` // required
+	Flows             OAuthFlows `json:"flows"`                       // required
 	OAuth2MetadataURL string     `json:"oauth2MetadataUrl,omitempty"` // RFC 8414
 }
 

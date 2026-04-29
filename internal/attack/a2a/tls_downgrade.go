@@ -98,10 +98,6 @@ func (e *TLSDowngradeExecutor) Execute(ctx context.Context, target string, opts 
 		if isHTTPSRedirect(resp.StatusCode) {
 			continue
 		}
-		if resp.StatusCode == 0 || resp.StatusCode >= 500 && resp.StatusCode < 600 {
-			// 5xx means the server received and processed the request over HTTP.
-			// This is still a finding -- the connection was accepted.
-		}
 		if resp.StatusCode >= 200 && resp.StatusCode < 600 && !isHTTPSRedirect(resp.StatusCode) {
 			// Any response (including 400 Bad Request or 401 Unauthorized) confirms
 			// the server received the HTTP request: the TCP connection was accepted

@@ -22,10 +22,15 @@ func newTaskStore() *taskStore {
 	return &taskStore{tasks: make(map[string]string)}
 }
 func (ts *taskStore) set(id, text string) {
-	ts.mu.Lock(); defer ts.mu.Unlock(); ts.tasks[id] = text
+	ts.mu.Lock()
+	defer ts.mu.Unlock()
+	ts.tasks[id] = text
 }
 func (ts *taskStore) get(id string) (string, bool) {
-	ts.mu.Lock(); defer ts.mu.Unlock(); v, ok := ts.tasks[id]; return v, ok
+	ts.mu.Lock()
+	defer ts.mu.Unlock()
+	v, ok := ts.tasks[id]
+	return v, ok
 }
 
 func vulnerableA2AServer(t *testing.T) *httptest.Server {

@@ -133,11 +133,11 @@ func (e *PushSSRFExecutor) Execute(ctx context.Context, target string, opts atta
 				containsToken(cb, token),
 			)
 			findings = append(findings, attack.Finding{
-				RuleID:      e.rule.ID,
-				RuleName:    e.rule.Name,
-				Severity:    "high",
-				Confidence:  attack.ConfirmedExploit,
-				Title:       "A2A server made outbound request to attacker-controlled push notification URL",
+				RuleID:     e.rule.ID,
+				RuleName:   e.rule.Name,
+				Severity:   "high",
+				Confidence: attack.ConfirmedExploit,
+				Title:      "A2A server made outbound request to attacker-controlled push notification URL",
 				Description: fmt.Sprintf("The A2A server at %s accepted a task registration with an attacker-controlled "+
 					"pushNotificationConfig.url and subsequently sent an outbound HTTP request to %s. "+
 					"This enables SSRF into internal networks, cloud metadata services, or private endpoints.",

@@ -40,8 +40,8 @@ func (e *CORSWildcardExecutor) Execute(ctx context.Context, target string, opts 
 	for _, ep := range candidates {
 		// OPTIONS preflight
 		optResp, err := client.OPTIONS(ctx, ep, map[string]string{
-			"Origin":                        corsProbeOrigin,
-			"Access-Control-Request-Method": "POST",
+			"Origin":                         corsProbeOrigin,
+			"Access-Control-Request-Method":  "POST",
 			"Access-Control-Request-Headers": "Content-Type, Authorization",
 		})
 		if err == nil {
@@ -94,9 +94,9 @@ func (e *CORSWildcardExecutor) evaluateCORS(resp *attack.Response, ep, method st
 			origin = "attacker origin"
 		}
 		return &attack.Finding{
-			RuleID:   e.rule.ID,
-			RuleName: e.rule.Name,
-			Severity: "high",
+			RuleID:     e.rule.ID,
+			RuleName:   e.rule.Name,
+			Severity:   "high",
 			Confidence: attack.ConfirmedExploit,
 			Title: fmt.Sprintf(
 				"MCP CORS policy reflects %s and sets Allow-Credentials: true", origin),
@@ -116,11 +116,11 @@ func (e *CORSWildcardExecutor) evaluateCORS(resp *attack.Response, ep, method st
 
 	case reflectsAttacker && !acac:
 		return &attack.Finding{
-			RuleID:   e.rule.ID,
-			RuleName: e.rule.Name,
-			Severity: "medium",
+			RuleID:     e.rule.ID,
+			RuleName:   e.rule.Name,
+			Severity:   "medium",
 			Confidence: attack.ConfirmedExploit,
-			Title:    "MCP CORS policy reflects arbitrary Origin header (no credentials)",
+			Title:      "MCP CORS policy reflects arbitrary Origin header (no credentials)",
 			Description: fmt.Sprintf(
 				"The server at %s reflects the request Origin verbatim in Access-Control-Allow-Origin "+
 					"without credentials. While cross-origin reads of unauthenticated responses are "+
@@ -135,11 +135,11 @@ func (e *CORSWildcardExecutor) evaluateCORS(resp *attack.Response, ep, method st
 
 	case isWildcard && !acac:
 		return &attack.Finding{
-			RuleID:   e.rule.ID,
-			RuleName: e.rule.Name,
-			Severity: "low",
+			RuleID:     e.rule.ID,
+			RuleName:   e.rule.Name,
+			Severity:   "low",
 			Confidence: attack.ConfirmedExploit,
-			Title:    "MCP CORS policy uses wildcard origin (no credentials)",
+			Title:      "MCP CORS policy uses wildcard origin (no credentials)",
 			Description: fmt.Sprintf(
 				"The server at %s returns Access-Control-Allow-Origin: * without credentials. "+
 					"Unauthenticated cross-origin reads of MCP responses are possible from any "+
