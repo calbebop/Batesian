@@ -131,6 +131,9 @@ Contributions welcome, especially new attack rules. No engine knowledge required
 See [CONTRIBUTING.md](CONTRIBUTING.md). Contributions are accepted under the same
 [Apache License 2.0](LICENSE) as the rest of the project.
 
+For vulnerable Python test servers, ports, and how rules map to each server, see
+[`testdata/README.md`](testdata/README.md).
+
 ---
 
 ## References
