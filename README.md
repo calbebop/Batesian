@@ -85,6 +85,8 @@ batesian scan --target https://mcp.example.com \
 batesian init
 ```
 
+Use `scan` for SARIF (for example GitHub Code Scanning uploads). The `probe` command does not support `--output sarif`; it is for quick reconnaissance with table or JSON output only.
+
 ---
 
 ## Rule packs
