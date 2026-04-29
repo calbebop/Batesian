@@ -220,6 +220,8 @@ PR description.
 
 ## Getting Help
 
-Open a GitHub issue with the `question` label, or start a discussion in the
-Discussions tab. For security-sensitive matters, use the GitHub Security
-Advisories feature rather than opening a public issue.
+For general questions, start a thread in the
+[Discussions](https://github.com/calvin-mcdowell/batesian/discussions) tab.
+For bug reports or new rule requests, open an issue using one of the existing
+templates. For security-sensitive matters, please follow the process in
+[`SECURITY.md`](SECURITY.md) rather than opening a public issue.
