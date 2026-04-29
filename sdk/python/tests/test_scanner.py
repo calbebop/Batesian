@@ -166,6 +166,86 @@ class TestScannerRun:
         assert "--oauth-scopes" in cmd
         assert "read,write" in cmd
 
+    def test_oauth_audience_passed(self):
+        with patch("batesian._scanner.find_binary", return_value="/fake/batesian"):
+            s = Scanner(
+                target="https://x.com",
+                token_url="https://auth.example.com/token",
+                client_id="my-client",
+                client_secret="my-secret",
+                oauth_audience="https://api.example.com",
+            )
+        with patch("subprocess.run", return_value=_mock_proc()) as mock_run:
+            s.run()
+        cmd = mock_run.call_args[0][0]
+        assert "--oauth-audience" in cmd
+        assert "https://api.example.com" in cmd
+
+    def test_pkce_auth_url_passed(self):
+        with patch("batesian._scanner.find_binary", return_value="/fake/batesian"):
+            s = Scanner(
+                target="https://mcp.example.com",
+                auth_url="https://auth.example.com/authorize",
+                token_url="https://auth.example.com/token",
+                client_id="my-client",
+                oauth_scopes=["mcp:read"],
+            )
+        with patch("subprocess.run", return_value=_mock_proc()) as mock_run:
+            s.run()
+        cmd = mock_run.call_args[0][0]
+        assert "--auth-url" in cmd
+        assert "https://auth.example.com/authorize" in cmd
+        # Client secret must NOT be sent for PKCE.
+        assert "--client-secret" not in cmd
+
+    def test_pkce_redirect_port_passed(self):
+        with patch("batesian._scanner.find_binary", return_value="/fake/batesian"):
+            s = Scanner(
+                target="https://mcp.example.com",
+                auth_url="https://auth.example.com/authorize",
+                token_url="https://auth.example.com/token",
+                client_id="my-client",
+                redirect_port=12345,
+            )
+        with patch("subprocess.run", return_value=_mock_proc()) as mock_run:
+            s.run()
+        cmd = mock_run.call_args[0][0]
+        assert "--redirect-port" in cmd
+        idx = cmd.index("--redirect-port")
+        assert cmd[idx + 1] == "12345"
+
+    def test_pkce_no_browser_flag(self):
+        with patch("batesian._scanner.find_binary", return_value="/fake/batesian"):
+            s = Scanner(
+                target="https://mcp.example.com",
+                auth_url="https://auth.example.com/authorize",
+                token_url="https://auth.example.com/token",
+                client_id="my-client",
+                no_browser=True,
+            )
+        with patch("subprocess.run", return_value=_mock_proc()) as mock_run:
+            s.run()
+        cmd = mock_run.call_args[0][0]
+        assert "--no-browser" in cmd
+
+    def test_no_browser_omitted_by_default(self):
+        with patch("batesian._scanner.find_binary", return_value="/fake/batesian"):
+            s = Scanner(target="https://x.com")
+        with patch("subprocess.run", return_value=_mock_proc()) as mock_run:
+            s.run()
+        cmd = mock_run.call_args[0][0]
+        assert "--no-browser" not in cmd
+        assert "--auth-url" not in cmd
+        assert "--redirect-port" not in cmd
+
+    def test_verbose_flag_passed(self):
+        with patch("batesian._scanner.find_binary", return_value="/fake/batesian"):
+            s = Scanner(target="https://x.com", verbose=True)
+        with patch("subprocess.run", return_value=_mock_proc()) as mock_run:
+            s.run()
+        cmd = mock_run.call_args[0][0]
+        assert "-v" in cmd
+
 
     def test_raises_scan_error_on_nonzero_exit(self, scanner):
         """Non-zero returncode with valid JSON must still raise ScanError."""
@@ -264,6 +344,14 @@ class TestScannerProbe:
         cmd = mock_run.call_args[0][0]
         assert "--config" in cmd
         assert "/tmp/batesian.yaml" in cmd
+
+    def test_probe_passes_verbose(self):
+        with patch("batesian._scanner.find_binary", return_value="/fake/batesian"):
+            s = Scanner(target="https://agent.example.com", verbose=True)
+        with patch("subprocess.run", return_value=_mock_proc(stdout=self._probe_output())) as mock_run:
+            s.probe()
+        cmd = mock_run.call_args[0][0]
+        assert "-v" in cmd
 
 
 class TestScannerBuildCommand:

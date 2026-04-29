@@ -75,6 +75,42 @@ scanner = Scanner(
 results = scanner.run()
 ```
 
+### Authenticated scan (OAuth 2.0 authorization code + PKCE)
+
+PKCE is interactive: the underlying `batesian` CLI opens a browser, the user
+consents, and the CLI captures the redirect on a localhost listener. The SDK
+forwards the flags; the browser flow and token exchange happen inside the Go
+binary. Use this when your IdP requires user consent (rather than client
+credentials).
+
+```python
+scanner = Scanner(
+    target="https://mcp.example.com",
+    auth_url="https://auth.example.com/authorize",
+    token_url="https://auth.example.com/oauth/token",
+    client_id="my-client-id",
+    oauth_scopes=["mcp:read"],
+)
+results = scanner.run()
+```
+
+For headless or CI environments, set `no_browser=True` and copy the printed
+authorization URL manually. Use `redirect_port=...` if your IdP has a fixed
+redirect URI registered or the default port is taken:
+
+```python
+scanner = Scanner(
+    target="https://mcp.example.com",
+    auth_url="https://auth.example.com/authorize",
+    token_url="https://auth.example.com/oauth/token",
+    client_id="my-client-id",
+    oauth_scopes=["mcp:read"],
+    redirect_port=8765,
+    no_browser=True,
+)
+results = scanner.run()
+```
+
 ### Use in CI (fail on critical findings)
 
 ```python
@@ -125,9 +161,13 @@ target before running a full scan. It defaults to the `"a2a"` protocol when
 | `client_secret` | `str` | OAuth 2.0 client secret |
 | `oauth_scopes` | `list[str]` | OAuth 2.0 scopes |
 | `oauth_audience` | `str` | OAuth 2.0 audience (Auth0/Okta-style) |
+| `auth_url` | `str` | OAuth 2.0 authorization endpoint URL (enables PKCE flow) |
+| `redirect_port` | `int` | Local port for the PKCE callback (default in CLI: 9876) |
+| `no_browser` | `bool` | Print the authorization URL instead of auto-opening a browser |
 | `timeout` | `int` | Per-request HTTP timeout in seconds (default: 10) |
 | `skip_tls` | `bool` | Skip TLS verification (default: False) |
 | `config` | `str` | Path to `batesian.yaml` config file |
+| `verbose` | `bool` | Forward `-v` to the CLI (verbose output to stderr; default: False) |
 
 ### `Results`
 
