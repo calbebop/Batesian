@@ -7,7 +7,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/calvin-mcdowell/batesian/internal/attack"
+	"github.com/calbebop/batesian/internal/attack"
 )
 
 // skillPoisonPattern is a named regex with a heuristic score.

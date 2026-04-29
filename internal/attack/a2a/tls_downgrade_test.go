@@ -8,8 +8,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/calvin-mcdowell/batesian/internal/attack"
-	a2aattack "github.com/calvin-mcdowell/batesian/internal/attack/a2a"
+	"github.com/calbebop/batesian/internal/attack"
+	a2aattack "github.com/calbebop/batesian/internal/attack/a2a"
 )
 
 func TestTLSDowngrade_AcceptsHTTP(t *testing.T) {

@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/calvin-mcdowell/batesian/internal/attack"
+	"github.com/calbebop/batesian/internal/attack"
 )
 
 // poisonPattern is a named regex pattern with a heuristic score and category.

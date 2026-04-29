@@ -7,7 +7,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/calvin-mcdowell/batesian/internal/attack"
+	"github.com/calbebop/batesian/internal/attack"
 )
 
 // TLSDowngradeExecutor tests whether A2A endpoints accept plain HTTP connections

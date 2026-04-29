@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/calvin-mcdowell/batesian/internal/attack"
+	"github.com/calbebop/batesian/internal/attack"
 )
 
 // ArtifactTamperExecutor tests whether an A2A server allows a client to

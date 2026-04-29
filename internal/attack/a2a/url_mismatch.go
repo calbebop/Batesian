@@ -7,7 +7,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/calvin-mcdowell/batesian/internal/attack"
+	"github.com/calbebop/batesian/internal/attack"
 )
 
 // URLMismatchExecutor checks whether the A2A Agent Card url field points to

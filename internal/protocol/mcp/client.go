@@ -359,7 +359,7 @@ func (c *Client) newRequest(ctx context.Context, ep string, body []byte) (*http.
 	}
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Accept", "application/json, text/event-stream")
-	req.Header.Set("User-Agent", "batesian/dev (https://github.com/calvin-mcdowell/batesian)")
+	req.Header.Set("User-Agent", "batesian/dev (https://github.com/calbebop/batesian)")
 	if c.bearerToken != "" {
 		req.Header.Set("Authorization", "Bearer "+c.bearerToken)
 	}

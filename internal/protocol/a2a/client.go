@@ -88,7 +88,7 @@ func NewClient(baseURL string, opts ...ClientOption) (*Client, error) {
 		},
 		baseURL: base,
 		headers: map[string]string{
-			"User-Agent": "batesian/dev (https://github.com/calvin-mcdowell/batesian)",
+			"User-Agent": "batesian/dev (https://github.com/calbebop/batesian)",
 			"Accept":     "application/json",
 		},
 	}

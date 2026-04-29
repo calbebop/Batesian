@@ -7,8 +7,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/calvin-mcdowell/batesian/internal/attack"
-	mcpattack "github.com/calvin-mcdowell/batesian/internal/attack/mcp"
+	"github.com/calbebop/batesian/internal/attack"
+	mcpattack "github.com/calbebop/batesian/internal/attack/mcp"
 )
 
 func TestContextFlood_AcceptsLargePayload(t *testing.T) {

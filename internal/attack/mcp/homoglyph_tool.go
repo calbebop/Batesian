@@ -6,7 +6,7 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/calvin-mcdowell/batesian/internal/attack"
+	"github.com/calbebop/batesian/internal/attack"
 )
 
 // homoglyphMap maps ASCII characters to visually similar Unicode codepoints.

@@ -7,8 +7,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/calvin-mcdowell/batesian/internal/attack"
-	"github.com/calvin-mcdowell/batesian/internal/attack/a2a"
+	"github.com/calbebop/batesian/internal/attack"
+	"github.com/calbebop/batesian/internal/attack/a2a"
 )
 
 // Shared helpers used by all test files in this package.

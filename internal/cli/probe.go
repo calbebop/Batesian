@@ -8,9 +8,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/calvin-mcdowell/batesian/internal/protocol/a2a"
-	"github.com/calvin-mcdowell/batesian/internal/protocol/mcp"
-	"github.com/calvin-mcdowell/batesian/internal/report"
+	"github.com/calbebop/batesian/internal/protocol/a2a"
+	"github.com/calbebop/batesian/internal/protocol/mcp"
+	"github.com/calbebop/batesian/internal/report"
 	"github.com/spf13/cobra"
 )
 

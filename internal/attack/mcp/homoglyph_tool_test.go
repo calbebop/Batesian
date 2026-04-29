@@ -7,8 +7,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/calvin-mcdowell/batesian/internal/attack"
-	mcpattack "github.com/calvin-mcdowell/batesian/internal/attack/mcp"
+	"github.com/calbebop/batesian/internal/attack"
+	mcpattack "github.com/calbebop/batesian/internal/attack/mcp"
 )
 
 func homoglyphMCPBase(w http.ResponseWriter, req map[string]interface{}, toolCallHandler func(http.ResponseWriter, map[string]interface{})) {

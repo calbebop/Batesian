@@ -6,13 +6,13 @@ import (
 	"os"
 	"strings"
 
-	batesian "github.com/calvin-mcdowell/batesian"
-	attackpkg "github.com/calvin-mcdowell/batesian/internal/attack"
-	"github.com/calvin-mcdowell/batesian/internal/auth"
-	"github.com/calvin-mcdowell/batesian/internal/config"
-	"github.com/calvin-mcdowell/batesian/internal/engine"
-	"github.com/calvin-mcdowell/batesian/internal/report"
-	"github.com/calvin-mcdowell/batesian/internal/rules"
+	batesian "github.com/calbebop/batesian"
+	attackpkg "github.com/calbebop/batesian/internal/attack"
+	"github.com/calbebop/batesian/internal/auth"
+	"github.com/calbebop/batesian/internal/config"
+	"github.com/calbebop/batesian/internal/engine"
+	"github.com/calbebop/batesian/internal/report"
+	"github.com/calbebop/batesian/internal/rules"
 	"github.com/spf13/cobra"
 )
 

@@ -9,8 +9,8 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/calvin-mcdowell/batesian/internal/attack"
-	a2aattack "github.com/calvin-mcdowell/batesian/internal/attack/a2a"
+	"github.com/calbebop/batesian/internal/attack"
+	a2aattack "github.com/calbebop/batesian/internal/attack/a2a"
 )
 
 type taskStore struct {

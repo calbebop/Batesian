@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/calvin-mcdowell/batesian/internal/attack"
-	"github.com/calvin-mcdowell/batesian/internal/oob"
+	"github.com/calbebop/batesian/internal/attack"
+	"github.com/calbebop/batesian/internal/oob"
 )
 
 // PushSSRFExecutor tests whether an A2A server makes outbound HTTP requests to

@@ -3,7 +3,7 @@ package cli
 import (
 	"fmt"
 
-	"github.com/calvin-mcdowell/batesian/internal/attack"
+	"github.com/calbebop/batesian/internal/attack"
 	"github.com/spf13/cobra"
 )
 
@@ -25,7 +25,7 @@ Unlike passive scanners, Batesian actively probes: it impersonates malicious age
 abuses OAuth flows, fuzzes protocol messages, and finds vulnerabilities that read-only
 scanners never see.
 
-Documentation: https://github.com/calvin-mcdowell/batesian`,
+Documentation: https://github.com/calbebop/batesian`,
 }
 
 // Execute is the entrypoint called by main.

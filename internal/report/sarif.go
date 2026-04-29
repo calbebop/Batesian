@@ -6,8 +6,8 @@ import (
 	"io"
 	"sort"
 
-	attackpkg "github.com/calvin-mcdowell/batesian/internal/attack"
-	"github.com/calvin-mcdowell/batesian/internal/engine"
+	attackpkg "github.com/calbebop/batesian/internal/attack"
+	"github.com/calbebop/batesian/internal/engine"
 )
 
 // SARIF v2.1.0 output for GitHub Security tab integration.
@@ -141,7 +141,7 @@ func buildSARIF(results []engine.RunResult, toolVersion string) sarifLog {
 					Driver: sarifDriver{
 						Name:           "batesian",
 						Version:        toolVersion,
-						InformationURI: "https://github.com/calvin-mcdowell/batesian",
+						InformationURI: "https://github.com/calbebop/batesian",
 						Rules:          rules,
 					},
 				},

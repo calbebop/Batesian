@@ -105,7 +105,7 @@ changelog:
 
 release:
   github:
-    owner: calvin-mcdowell
+    owner: calbebop
     name: batesian
   draft: false
   prerelease: auto
@@ -120,7 +120,7 @@ release:
 
     **Go:**
     ```bash
-    go install github.com/calvin-mcdowell/batesian/cmd/batesian@{{.Tag}}
+    go install github.com/calbebop/batesian/cmd/batesian@{{.Tag}}
     ```
 
     **Binary (Linux / macOS):**
@@ -137,7 +137,7 @@ release:
   footer: |
     ---
     {{ if .PreviousTag -}}
-    **Full changelog**: https://github.com/calvin-mcdowell/batesian/compare/{{.PreviousTag}}...{{.Tag}}
+    **Full changelog**: https://github.com/calbebop/batesian/compare/{{.PreviousTag}}...{{.Tag}}
     {{- else -}}
-    **Full changelog**: https://github.com/calvin-mcdowell/batesian/commits/{{.Tag}}
+    **Full changelog**: https://github.com/calbebop/batesian/commits/{{.Tag}}
     {{- end }}

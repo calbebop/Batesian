@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/calvin-mcdowell/batesian/internal/attack"
+	"github.com/calbebop/batesian/internal/attack"
 )
 
 func TestNewUnauthHTTPClient_StripsToken(t *testing.T) {

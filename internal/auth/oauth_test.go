@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/calvin-mcdowell/batesian/internal/auth"
+	"github.com/calbebop/batesian/internal/auth"
 )
 
 func TestFetchClientCredentialsToken_Success(t *testing.T) {

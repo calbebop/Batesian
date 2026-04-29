@@ -5,7 +5,7 @@
 If you discover a security vulnerability in Batesian itself, **please do not open a public GitHub issue.**
 
 Report it privately via GitHub's Security Advisory feature:
-1. Go to the [Security tab](https://github.com/calvin-mcdowell/batesian/security) of this repository
+1. Go to the [Security tab](https://github.com/calbebop/batesian/security) of this repository
 2. Click "Report a vulnerability"
 3. Fill in the details
 

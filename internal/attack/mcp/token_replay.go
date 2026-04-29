@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/calvin-mcdowell/batesian/internal/attack"
+	"github.com/calbebop/batesian/internal/attack"
 )
 
 // TokenReplayExecutor tests whether an MCP server validates the `aud` claim on

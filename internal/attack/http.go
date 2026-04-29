@@ -155,7 +155,7 @@ func (c *HTTPClient) do(ctx context.Context, method, url string, body io.Reader,
 	if err != nil {
 		return nil, fmt.Errorf("building %s %s: %w", method, url, err)
 	}
-	req.Header.Set("User-Agent", "batesian/"+Version+" (https://github.com/calvin-mcdowell/batesian)")
+	req.Header.Set("User-Agent", "batesian/"+Version+" (https://github.com/calbebop/batesian)")
 	// MCP streamable HTTP requires text/event-stream in Accept; A2A servers ignore it.
 	req.Header.Set("Accept", "application/json, text/event-stream")
 	// Inject the bearer token unless the caller overrides Authorization explicitly.

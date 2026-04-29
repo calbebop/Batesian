@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/calvin-mcdowell/batesian/internal/config"
+	"github.com/calbebop/batesian/internal/config"
 	"github.com/spf13/cobra"
 )
 

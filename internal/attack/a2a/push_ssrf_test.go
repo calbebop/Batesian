@@ -8,7 +8,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/calvin-mcdowell/batesian/internal/attack/a2a"
+	"github.com/calbebop/batesian/internal/attack/a2a"
 )
 
 // TestPushSSRFExecutor_MethodNotFound verifies that a server rejecting all A2A

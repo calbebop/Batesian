@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/calvin-mcdowell/batesian/internal/attack"
+	"github.com/calbebop/batesian/internal/attack"
 )
 
 // injectionPayload pairs a payload string with its attack class and severity.

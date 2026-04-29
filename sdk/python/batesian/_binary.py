@@ -50,7 +50,7 @@ def find_binary(binary_path: Optional[str] = None) -> str:
 
     raise BinaryNotFoundError(
         "batesian binary not found. Install with:\n"
-        "  go install github.com/calvin-mcdowell/batesian/cmd/batesian@latest\n"
+        "  go install github.com/calbebop/batesian/cmd/batesian@latest\n"
         "or set the BATESIAN_BIN environment variable to its path."
     )
 
