@@ -87,6 +87,8 @@ batesian init
 
 Use `scan` for SARIF (for example GitHub Code Scanning uploads). The `probe` command does not support `--output sarif`; it is for quick reconnaissance with table or JSON output only.
 
+More options for `scan` (filters, config file, custom rules, OAuth, and more): run `batesian scan --help`.
+
 ---
 
 ## Rule packs
