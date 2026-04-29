@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/calvin-mcdowell/batesian/internal/attack"
+	"github.com/calbebop/batesian/internal/attack"
 )
 
 // securityHeader describes one HTTP security header check.

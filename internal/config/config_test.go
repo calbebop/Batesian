@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/calvin-mcdowell/batesian/internal/config"
+	"github.com/calbebop/batesian/internal/config"
 )
 
 func TestLoad_EmptyPath_NoFile(t *testing.T) {

@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/calvin-mcdowell/batesian/internal/attack"
+	"github.com/calbebop/batesian/internal/attack"
 )
 
 // TaskIDORExecutor tests whether A2A task history is accessible by unauthenticated

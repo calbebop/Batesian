@@ -1,4 +1,4 @@
-module github.com/calvin-mcdowell/batesian
+module github.com/calbebop/batesian
 
 go 1.25.9
 

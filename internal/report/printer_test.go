@@ -5,10 +5,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/calvin-mcdowell/batesian/internal/attack"
-	"github.com/calvin-mcdowell/batesian/internal/engine"
-	"github.com/calvin-mcdowell/batesian/internal/report"
-	"github.com/calvin-mcdowell/batesian/internal/rules"
+	"github.com/calbebop/batesian/internal/attack"
+	"github.com/calbebop/batesian/internal/engine"
+	"github.com/calbebop/batesian/internal/report"
+	"github.com/calbebop/batesian/internal/rules"
 )
 
 // TestPrintScanSummary_RiskIndicatorTag verifies that a finding with

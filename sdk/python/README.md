@@ -1,6 +1,6 @@
 # batesian Python SDK
 
-Python wrapper around the [Batesian](https://github.com/calvin-mcdowell/batesian) red-team CLI for AI agent protocols.
+Python wrapper around the [Batesian](https://github.com/calbebop/batesian) red-team CLI for AI agent protocols.
 
 ## Requirements
 
@@ -8,7 +8,7 @@ Python wrapper around the [Batesian](https://github.com/calvin-mcdowell/batesian
 - The `batesian` CLI binary installed and on `PATH`
 
 ```bash
-go install github.com/calvin-mcdowell/batesian/cmd/batesian@latest
+go install github.com/calbebop/batesian/cmd/batesian@latest
 ```
 
 ## Install
@@ -19,7 +19,7 @@ go install github.com/calvin-mcdowell/batesian/cmd/batesian@latest
 From Git:
 
 ```bash
-pip install "batesian @ git+https://github.com/calvin-mcdowell/batesian.git@main#subdirectory=sdk/python"
+pip install "batesian @ git+https://github.com/calbebop/batesian.git@main#subdirectory=sdk/python"
 ```
 
 Or from source (within this directory):

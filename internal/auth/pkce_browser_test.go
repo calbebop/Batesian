@@ -13,7 +13,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/calvin-mcdowell/batesian/internal/auth"
+	"github.com/calbebop/batesian/internal/auth"
 )
 
 // performPKCEFlowForTest forwards to the test-only export that lets us pass a

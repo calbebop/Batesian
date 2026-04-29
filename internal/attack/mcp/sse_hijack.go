@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/calvin-mcdowell/batesian/internal/attack"
+	"github.com/calbebop/batesian/internal/attack"
 )
 
 // ssePaths contains the paths where MCP servers commonly expose SSE streams.

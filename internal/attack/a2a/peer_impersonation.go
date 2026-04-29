@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/calvin-mcdowell/batesian/internal/attack"
+	"github.com/calbebop/batesian/internal/attack"
 )
 
 // PeerImpersonationExecutor tests whether an A2A server validates the

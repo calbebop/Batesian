@@ -9,8 +9,8 @@ import (
 	"text/tabwriter"
 	"time"
 
-	attackpkg "github.com/calvin-mcdowell/batesian/internal/attack"
-	"github.com/calvin-mcdowell/batesian/internal/engine"
+	attackpkg "github.com/calbebop/batesian/internal/attack"
+	"github.com/calbebop/batesian/internal/engine"
 	"github.com/fatih/color"
 )
 
@@ -67,7 +67,7 @@ func New(w io.Writer, verbose bool) *Printer {
 func (p *Printer) Banner() {
 	fmt.Fprintln(p.w)
 	fmt.Fprintf(p.w, "  %s  adversarial red-team for AI agent protocols\n", Bold("batesian"))
-	fmt.Fprintf(p.w, "  %s\n", Dim("github.com/calvin-mcdowell/batesian"))
+	fmt.Fprintf(p.w, "  %s\n", Dim("github.com/calbebop/batesian"))
 	fmt.Fprintln(p.w)
 }
 

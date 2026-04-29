@@ -26,7 +26,7 @@ info:
   references:
     - https://google.github.io/A2A/specification/
     - https://owasp.org/www-project-top-10-for-large-language-model-applications/
-    - https://github.com/calvin-mcdowell/batesian/blob/main/rules/mcp/tool-poison-001.yaml
+    - https://github.com/calbebop/batesian/blob/main/rules/mcp/tool-poison-001.yaml
     - https://cwe.mitre.org/data/definitions/20.html
     - https://cwe.mitre.org/data/definitions/79.html
 

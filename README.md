@@ -4,7 +4,7 @@
 
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 [![Go Version](https://img.shields.io/badge/go-1.25+-00ADD8.svg)](https://golang.org)
-[![Build](https://github.com/calvin-mcdowell/batesian/actions/workflows/ci.yml/badge.svg)](https://github.com/calvin-mcdowell/batesian/actions)
+[![Build](https://github.com/calbebop/batesian/actions/workflows/ci.yml/badge.svg)](https://github.com/calbebop/batesian/actions)
 
 Batesian is a red-team CLI that sends crafted adversarial payloads against A2A and MCP protocol
 implementations to surface vulnerabilities in OAuth flows, push-notification callbacks, JWS
@@ -52,7 +52,7 @@ warranting manual review). All rules ship with CWE references and remediation gu
 
 ```bash
 # Install (no API keys, no Python, no setup)
-go install github.com/calvin-mcdowell/batesian/cmd/batesian@latest
+go install github.com/calbebop/batesian/cmd/batesian@latest
 
 # Probe an A2A endpoint and map the attack surface
 batesian probe --target https://agent.example.com --protocol a2a

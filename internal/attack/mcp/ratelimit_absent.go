@@ -7,7 +7,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/calvin-mcdowell/batesian/internal/attack"
+	"github.com/calbebop/batesian/internal/attack"
 )
 
 const (

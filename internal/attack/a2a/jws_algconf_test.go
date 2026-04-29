@@ -8,8 +8,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/calvin-mcdowell/batesian/internal/attack"
-	"github.com/calvin-mcdowell/batesian/internal/attack/a2a"
+	"github.com/calbebop/batesian/internal/attack"
+	"github.com/calbebop/batesian/internal/attack/a2a"
 )
 
 // buildProtectedHeader base64url-encodes a JSON protected header for use in

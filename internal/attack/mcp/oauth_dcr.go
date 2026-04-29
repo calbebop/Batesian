@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/calvin-mcdowell/batesian/internal/attack"
+	"github.com/calbebop/batesian/internal/attack"
 )
 
 // OAuthDCRExecutor tests whether an MCP server's OAuth 2.1 dynamic client

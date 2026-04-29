@@ -8,8 +8,8 @@ import (
 	"sync/atomic"
 	"testing"
 
-	"github.com/calvin-mcdowell/batesian/internal/attack"
-	mcpattack "github.com/calvin-mcdowell/batesian/internal/attack/mcp"
+	"github.com/calbebop/batesian/internal/attack"
+	mcpattack "github.com/calbebop/batesian/internal/attack/mcp"
 )
 
 func TestToolNamespace_StableTools(t *testing.T) {

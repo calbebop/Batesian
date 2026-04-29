@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/calvin-mcdowell/batesian/internal/cli"
+	"github.com/calbebop/batesian/internal/cli"
 )
 
 // Version variables are injected at build time by goreleaser via -ldflags.

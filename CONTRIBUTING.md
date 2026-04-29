@@ -222,7 +222,7 @@ PR description.
 ## Getting Help
 
 For general questions, start a thread in the
-[Discussions](https://github.com/calvin-mcdowell/batesian/discussions) tab.
+[Discussions](https://github.com/calbebop/batesian/discussions) tab.
 For bug reports or new rule requests, open an issue using one of the existing
 templates. For security-sensitive matters, please follow the process in
 [`SECURITY.md`](SECURITY.md) rather than opening a public issue.

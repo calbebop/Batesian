@@ -7,8 +7,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/calvin-mcdowell/batesian/internal/attack"
-	a2aattack "github.com/calvin-mcdowell/batesian/internal/attack/a2a"
+	"github.com/calbebop/batesian/internal/attack"
+	a2aattack "github.com/calbebop/batesian/internal/attack/a2a"
 )
 
 func a2aRPCBase(w http.ResponseWriter, req map[string]interface{}, handler func(http.ResponseWriter, map[string]interface{})) {

@@ -1,10 +1,10 @@
 # Default owner for all files
-* @calvin-mcdowell
+* @calbebop
 
 # Attack rules and executors
-/rules/ @calvin-mcdowell
-/internal/attack/ @calvin-mcdowell
-/internal/engine/ @calvin-mcdowell
+/rules/ @calbebop
+/internal/attack/ @calbebop
+/internal/engine/ @calbebop
 
 # SDK
-/sdk/ @calvin-mcdowell
+/sdk/ @calbebop

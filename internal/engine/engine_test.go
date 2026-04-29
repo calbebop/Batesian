@@ -3,10 +3,10 @@ package engine_test
 import (
 	"testing"
 
-	batesian "github.com/calvin-mcdowell/batesian"
-	"github.com/calvin-mcdowell/batesian/internal/attack"
-	"github.com/calvin-mcdowell/batesian/internal/engine"
-	"github.com/calvin-mcdowell/batesian/internal/rules"
+	batesian "github.com/calbebop/batesian"
+	"github.com/calbebop/batesian/internal/attack"
+	"github.com/calbebop/batesian/internal/engine"
+	"github.com/calbebop/batesian/internal/rules"
 )
 
 // TestAllBundledRulesResolve loads every YAML rule shipped with the binary and

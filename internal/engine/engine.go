@@ -6,10 +6,10 @@ import (
 	"context"
 	"fmt"
 
-	attackpkg "github.com/calvin-mcdowell/batesian/internal/attack"
-	a2aattack "github.com/calvin-mcdowell/batesian/internal/attack/a2a"
-	mcpattack "github.com/calvin-mcdowell/batesian/internal/attack/mcp"
-	"github.com/calvin-mcdowell/batesian/internal/rules"
+	attackpkg "github.com/calbebop/batesian/internal/attack"
+	a2aattack "github.com/calbebop/batesian/internal/attack/a2a"
+	mcpattack "github.com/calbebop/batesian/internal/attack/mcp"
+	"github.com/calbebop/batesian/internal/rules"
 )
 
 // RunResult holds the findings and any error from executing a single rule.

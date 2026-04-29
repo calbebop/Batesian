@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/calvin-mcdowell/batesian/internal/attack"
+	"github.com/calbebop/batesian/internal/attack"
 )
 
 // ToolNamespaceExecutor connects to an MCP server twice with independent

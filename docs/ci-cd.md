@@ -30,7 +30,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Install Batesian
-        run: go install github.com/calvin-mcdowell/batesian/cmd/batesian@latest
+        run: go install github.com/calbebop/batesian/cmd/batesian@latest
 
       - name: Run scan (SARIF output)
         run: |
@@ -134,7 +134,7 @@ batesian-scan:
   image: golang:1.25
   stage: test
   script:
-    - go install github.com/calvin-mcdowell/batesian/cmd/batesian@latest
+    - go install github.com/calbebop/batesian/cmd/batesian@latest
     - batesian scan --target $AGENT_TARGET_URL --output json > batesian-results.json
     - |
       jq -e '(.findings // []) | map(select(.severity == "critical")) | length == 0' \
@@ -152,7 +152,7 @@ batesian-scan:
 ```groovy
 stage('Agent Security Scan') {
     steps {
-        sh 'go install github.com/calvin-mcdowell/batesian/cmd/batesian@latest'
+        sh 'go install github.com/calbebop/batesian/cmd/batesian@latest'
         sh '''
             batesian scan \
               --target ${AGENT_TARGET_URL} \

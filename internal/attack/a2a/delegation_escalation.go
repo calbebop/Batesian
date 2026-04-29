@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/calvin-mcdowell/batesian/internal/attack"
+	"github.com/calbebop/batesian/internal/attack"
 )
 
 // DelegationEscalationExecutor tests whether an A2A worker agent accepts and

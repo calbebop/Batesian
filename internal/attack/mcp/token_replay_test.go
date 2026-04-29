@@ -8,8 +8,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/calvin-mcdowell/batesian/internal/attack"
-	mcpattack "github.com/calvin-mcdowell/batesian/internal/attack/mcp"
+	"github.com/calbebop/batesian/internal/attack"
+	mcpattack "github.com/calbebop/batesian/internal/attack/mcp"
 )
 
 func tokenReplayRC() attack.RuleContext {

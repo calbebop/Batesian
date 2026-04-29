@@ -8,7 +8,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/calvin-mcdowell/batesian/internal/attack"
+	"github.com/calbebop/batesian/internal/attack"
 )
 
 // JWSAlgConfExecutor inspects A2A AgentCard JWS signatures for algorithm
