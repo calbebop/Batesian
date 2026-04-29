@@ -55,6 +55,12 @@ ROADMAP.md
 coverage.out
 coverage.html
 
+# Go profiling and benchmark output
+*.prof
+cpu.out
+mem.out
+trace.out
+
 # Test server logs generated at runtime
 *.log
 *_err.log
