@@ -15,6 +15,10 @@ context injection, and more.
 
 > **Authorized use only.** Only run Batesian against systems you own or have explicit written
 > permission to test. Unauthorized use is illegal and unethical.
+>
+> **Secrets and TLS.** Prefer `BATESIAN_TOKEN` (or your secret manager) over pasting long-lived
+> credentials into shared terminals or CI logs. Use `--skip-tls` only when you must talk to a
+> target with intentionally broken TLS (for example a local lab with self-signed certificates).
 
 ---
 
