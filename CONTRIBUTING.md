@@ -9,8 +9,9 @@ are welcome, whether that is a new attack rule, a bug fix, or improved documenta
 - Batesian is an **active exploit engine**, not a passive scanner. Every rule
   must send crafted payloads to a live endpoint and evaluate real server responses.
   Heuristic-only rules belong in a different tool.
-- All contributions require a [Developer Certificate of Origin](https://developercertificate.org/)
-  sign-off: `git commit -s`. Enterprise contributor agreements will be evaluated as the project matures.
+- By submitting a pull request, you agree your contributions are licensed under the
+  same [Apache License 2.0](LICENSE) that covers this repository. No separate
+  contributor agreement is required.
 
 ---
 
@@ -198,7 +199,6 @@ PR description.
 - Use conventional commit prefixes: `feat:`, `fix:`, `chore:`, `docs:`, `test:`
 - One logical change per commit.
 - Reference the rule ID in the commit message when adding or modifying a rule.
-- Sign off with `git commit -s` for all commits intended for the public repo.
 
 ---
 

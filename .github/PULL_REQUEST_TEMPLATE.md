@@ -17,10 +17,6 @@
 - [ ] `golangci-lint run` passes (CI enforces this)
 - [ ] New rules include a vulnerable test server in `testdata/` and a unit test in `internal/attack/`
 
-## DCO
-
-- [ ] All commits are signed off (`git commit -s`)
-
 ## Related issues
 
 Closes #
