@@ -5,7 +5,6 @@
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 [![Go Version](https://img.shields.io/badge/go-1.25+-00ADD8.svg)](https://golang.org)
 [![Build](https://github.com/calvin-mcdowell/batesian/actions/workflows/ci.yml/badge.svg)](https://github.com/calvin-mcdowell/batesian/actions)
-[![DCO](https://img.shields.io/badge/contributor%20agreement-DCO-blue.svg)](https://developercertificate.org)
 
 Batesian is a red-team CLI that sends crafted adversarial payloads against A2A and MCP protocol
 implementations to surface vulnerabilities that observation-only tools never reach: SSRF via
@@ -125,8 +124,8 @@ in active development. Star or watch to follow progress.
 
 Contributions welcome, especially new attack rules. No engine knowledge required to write a rule.
 
-See [CONTRIBUTING.md](CONTRIBUTING.md). All contributors sign off commits with a DCO
-(`git commit -s`).
+See [CONTRIBUTING.md](CONTRIBUTING.md). Contributions are accepted under the same
+[Apache License 2.0](LICENSE) as the rest of the project.
 
 ---
 
