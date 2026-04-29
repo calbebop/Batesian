@@ -32,6 +32,17 @@ pip install starlette uvicorn httpx mcp
 | `mcp_flood_namespace_sse_server.py` | 7781 | `mcp-context-flood-001`, `mcp-tool-namespace-001`, `mcp-sse-hijack-001` |
 | `mcp_injection_server.py` | 7783 | `mcp-init-instructions-inject-001`, `mcp-injection-params-001`, `mcp-ratelimit-absent-001`, `mcp-homoglyph-tool-001` |
 
+**Coverage.** All **18** bundled A2A rules (`a2a-*-001`) appear in the table
+above. Of the **16** bundled MCP rules (`mcp-*-001`), **13** are exercised by
+the Python servers listed here. The other **3** have no standalone Python
+server yet; they are validated only with `net/http/httptest` in Go unit tests:
+
+| Rule ID | Go tests |
+|---------|----------|
+| `mcp-security-headers-001` | `internal/attack/mcp/security_headers_test.go` |
+| `mcp-token-replay-001` | `internal/attack/mcp/token_replay_test.go` |
+| `mcp-sampling-inject-001` | `internal/attack/mcp/sampling_inject_test.go` |
+
 `mockserver.go` is a Go helper used by unit tests via `net/http/httptest`. It is
 not a standalone server.
 
