@@ -7,9 +7,8 @@
 [![Build](https://github.com/calvin-mcdowell/batesian/actions/workflows/ci.yml/badge.svg)](https://github.com/calvin-mcdowell/batesian/actions)
 
 Batesian is a red-team CLI that sends crafted adversarial payloads against A2A and MCP protocol
-implementations to surface vulnerabilities that observation-only tools never reach: SSRF via
-push-notification callbacks, OAuth scope escalation, JWS algorithm confusion, cross-session
-context injection, and more.
+implementations to surface vulnerabilities in OAuth flows, push-notification callbacks, JWS
+handling, cross-session isolation, tool and metadata trust, and related behavior.
 
 ![Batesian demo](docs/demo.gif)
 
@@ -24,19 +23,15 @@ context injection, and more.
 
 ## Why Batesian exists
 
-Most agent security tooling takes an observational posture: connect to a running server, read what
-it exposes, check spec compliance, and pattern-match for known strings. That approach is genuinely
-useful and catches a real class of problems.
+A2A and MCP servers sit in sensitive workflows: OAuth and dynamic registration, outbound
+callbacks, signed agent metadata, long-lived tasks, and tool execution. Many failure modes only
+show up when the implementation **processes** attacker-shaped protocol traffic—for example a
+crafted registration or redirect, a push URL pointed at an unexpected host, or a malformed JWS
+that should be rejected outright.
 
-It leaves another class completely untested. Some vulnerabilities only surface when the system
-processes a crafted attack payload such as an abused OAuth registration flow, a push-notification
-callback pointed at an attacker-controlled host, a JWS signature stripped down to `"alg":"none"`.
-Passive inspection cannot reach these because they require the server to act, not just exist.
-
-Batesian is built for that second class. It does not replace observational scanning. It covers the
-ground that observational scanning structurally cannot.
-
-See [docs/comparison.md](docs/comparison.md) for a full breakdown against other tools in the space.
+Batesian automates that style of check: each rule drives concrete requests (and, where relevant,
+out-of-band signals) and records whether the target behaved safely. The goal is reproducible
+evidence and actionable remediation, not a one-time manual poke at the endpoint.
 
 ---
 
