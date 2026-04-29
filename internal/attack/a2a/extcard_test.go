@@ -76,6 +76,11 @@ func TestExtCardExecutor_Vulnerable(t *testing.T) {
 	if !hasHighOrCritical {
 		t.Errorf("expected at least one high or critical finding, got: %+v", findings)
 	}
+	for _, f := range findings {
+		if f.Confidence != attack.ConfirmedExploit {
+			t.Errorf("finding %q: want ConfirmedExploit, got %q", f.Title, f.Confidence)
+		}
+	}
 }
 
 // TestExtCardExecutor_Clean verifies that a server enforcing authentication

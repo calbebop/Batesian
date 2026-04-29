@@ -8,6 +8,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/calvin-mcdowell/batesian/internal/attack"
 	"github.com/calvin-mcdowell/batesian/internal/attack/a2a"
 )
 
@@ -74,6 +75,9 @@ func TestSessionSmuggleExecutor_RoleInjectionAccepted(t *testing.T) {
 		}
 		if f.Title == "" {
 			t.Error("finding has empty title")
+		}
+		if f.Confidence != attack.ConfirmedExploit {
+			t.Errorf("finding %q: want ConfirmedExploit confidence, got %q", f.Title, f.Confidence)
 		}
 	}
 }

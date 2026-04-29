@@ -103,31 +103,54 @@ func TestGeneratePKCE(t *testing.T) {
 }
 
 func TestDiscoverTokenURL(t *testing.T) {
-	// Serve an OIDC well-known document.
-	// Use a mux so the server URL is available inside the handler via r.Host.
-	var tokenEndpoint string
+	// Serve an OIDC well-known document that returns an https:// token_endpoint.
+	// This validates that discovery correctly parses the endpoint from the JSON.
+	// The token_endpoint value uses a fake HTTPS URL since the new enforcement
+	// in discoverTokenURLWithClient rejects http:// token endpoints.
+	const fakeTokenEndpoint = "https://auth.example.com/oauth/token"
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/.well-known/openid-configuration" {
 			w.Header().Set("Content-Type", "application/json")
 			json.NewEncoder(w).Encode(map[string]interface{}{
-				"issuer":         tokenEndpoint,
-				"token_endpoint": tokenEndpoint + "/oauth/token",
+				"issuer":         "https://auth.example.com",
+				"token_endpoint": fakeTokenEndpoint,
 			})
 			return
 		}
 		http.NotFound(w, r)
 	}))
 	defer srv.Close()
-	tokenEndpoint = srv.URL
 
-	// Use the test helper that bypasses the HTTPS-only scheme check so we can
+	// Use the test helper that bypasses the HTTPS-only issuer check so we can
 	// inject our httptest (http://) server without skipping the discovery logic.
 	ep := auth.DiscoverTokenURLWithClient(context.Background(), srv.URL, &http.Client{})
 	if ep == "" {
 		t.Fatal("expected token endpoint from OIDC discovery, got empty string")
 	}
-	if !strings.HasSuffix(ep, "/oauth/token") {
-		t.Errorf("unexpected token endpoint: %q", ep)
+	if ep != fakeTokenEndpoint {
+		t.Errorf("unexpected token endpoint: got %q, want %q", ep, fakeTokenEndpoint)
+	}
+}
+
+func TestDiscoverTokenURL_RejectsHTTPTokenEndpoint(t *testing.T) {
+	// Verify that a metadata document advertising an http:// token_endpoint is
+	// rejected even when the issuer itself is valid (security: prevent SSRF / plaintext creds).
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/.well-known/openid-configuration" {
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(map[string]interface{}{
+				"issuer":         "https://auth.example.com",
+				"token_endpoint": "http://auth.example.com/oauth/token",
+			})
+			return
+		}
+		http.NotFound(w, r)
+	}))
+	defer srv.Close()
+
+	ep := auth.DiscoverTokenURLWithClient(context.Background(), srv.URL, &http.Client{})
+	if ep != "" {
+		t.Errorf("expected empty string for http:// token_endpoint, got %q", ep)
 	}
 }
 

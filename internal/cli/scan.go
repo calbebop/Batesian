@@ -53,7 +53,7 @@ func init() {
 	scanCmd.Flags().String("token", "", "Bearer token for authenticated requests")
 	scanCmd.Flags().Int("timeout", 10, "Request timeout in seconds")
 	scanCmd.Flags().Bool("skip-tls", false, "Skip TLS certificate verification")
-	scanCmd.Flags().Bool("oob", false, "Enable local OOB listener for SSRF callback detection")
+	scanCmd.Flags().Bool("oob", false, "Deprecated: OOB listener is always started when no --oob-url is provided")
 	scanCmd.Flags().String("oob-url", "", "External OOB server URL (overrides --oob local listener)")
 	scanCmd.Flags().String("config", "", "Path to batesian.yaml config file (default: auto-discover)")
 	// OAuth 2.0 flags for automatic token acquisition.
@@ -84,7 +84,6 @@ func runScan(cmd *cobra.Command, args []string) error {
 	token, _ := cmd.Flags().GetString("token")
 	timeoutSecs, _ := cmd.Flags().GetInt("timeout")
 	skipTLS, _ := cmd.Flags().GetBool("skip-tls")
-	oobEnabled, _ := cmd.Flags().GetBool("oob")
 	oobURL, _ := cmd.Flags().GetString("oob-url")
 
 	if target == "" {
@@ -116,9 +115,6 @@ func runScan(cmd *cobra.Command, args []string) error {
 	}
 	if !skipTLS {
 		skipTLS = cfg.SkipTLS
-	}
-	if !oobEnabled {
-		oobEnabled = cfg.OOB
 	}
 	if oobURL == "" {
 		oobURL = cfg.OOBURL

@@ -38,7 +38,10 @@ func NewResourcesUnauthExecutor(r attack.RuleContext) *ResourcesUnauthExecutor {
 
 func (e *ResourcesUnauthExecutor) Execute(ctx context.Context, target string, opts attack.Options) ([]attack.Finding, error) {
 	vars := attack.NewVars(target, opts.OOBListenerURL)
-	client := attack.NewHTTPClient(opts, vars)
+	// Deliberately omit the bearer token so the probe represents unauthenticated
+	// access. Findings claim resources are accessible WITHOUT authentication; if
+	// opts.Token were injected the finding would be misleading.
+	client := attack.NewUnauthHTTPClient(opts, vars)
 
 	// MCP requires an initialize handshake before any method calls.
 	session, err := initializeMCP(ctx, client, vars.BaseURL)

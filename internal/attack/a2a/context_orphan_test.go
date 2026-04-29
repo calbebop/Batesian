@@ -232,6 +232,11 @@ func TestContextOrphan_VulnerableServer(t *testing.T) {
 	if !hasHighOrCritical {
 		t.Errorf("expected high/critical finding for context injection, got: %v", findings)
 	}
+	for _, f := range findings {
+		if f.Confidence != attack.ConfirmedExploit {
+			t.Errorf("finding %q: want ConfirmedExploit, got %q", f.Title, f.Confidence)
+		}
+	}
 }
 
 func TestContextOrphan_SecureServer(t *testing.T) {

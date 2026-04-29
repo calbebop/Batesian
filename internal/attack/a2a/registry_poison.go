@@ -53,7 +53,9 @@ func NewRegistryPoisonExecutor(r attack.RuleContext) *RegistryPoisonExecutor {
 
 func (e *RegistryPoisonExecutor) Execute(ctx context.Context, target string, opts attack.Options) ([]attack.Finding, error) {
 	vars := attack.NewVars(target, opts.OOBListenerURL)
-	client := attack.NewHTTPClient(opts, vars)
+	// Use an unauthenticated client — the rule tests whether an unauthenticated
+	// caller can poison the registry. Injecting opts.Token would mask the finding.
+	client := attack.NewUnauthHTTPClient(opts, vars)
 
 	var findings []attack.Finding
 

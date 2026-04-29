@@ -44,7 +44,18 @@ func (e *Engine) Run(ctx context.Context, target string, rs []*rules.Rule) []Run
 }
 
 // runOne executes a single rule and returns its RunResult.
-func (e *Engine) runOne(ctx context.Context, target string, r *rules.Rule) RunResult {
+// A panic inside any executor is caught and surfaced as RunResult.Err so that
+// the rest of the scan can continue rather than crashing the process.
+func (e *Engine) runOne(ctx context.Context, target string, r *rules.Rule) (result RunResult) {
+	// Bail out immediately if the scan context was already cancelled.
+	if ctx.Err() != nil {
+		return RunResult{
+			Rule:    r,
+			Skipped: true,
+			SkipMsg: "context cancelled before executor started",
+		}
+	}
+
 	executor, err := resolveExecutor(r)
 	if err != nil {
 		return RunResult{
@@ -53,6 +64,15 @@ func (e *Engine) runOne(ctx context.Context, target string, r *rules.Rule) RunRe
 			SkipMsg: fmt.Sprintf("no executor for attack type %q: %v", r.Attack.Type, err),
 		}
 	}
+
+	defer func() {
+		if p := recover(); p != nil {
+			result = RunResult{
+				Rule: r,
+				Err:  fmt.Errorf("executor panicked: %v", p),
+			}
+		}
+	}()
 
 	findings, err := executor.Execute(ctx, target, e.opts)
 	return RunResult{

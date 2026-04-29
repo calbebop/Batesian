@@ -44,7 +44,10 @@ var (
 // Execute runs the DCR scope escalation test.
 func (e *OAuthDCRExecutor) Execute(ctx context.Context, target string, opts attack.Options) ([]attack.Finding, error) {
 	vars := attack.NewVars(target, opts.OOBListenerURL)
+	// metadata discovery may use any configured token; DCR registrations must
+	// be unauthenticated to correctly test for missing Initial Access Token (IAT).
 	client := attack.NewHTTPClient(opts, vars)
+	unauthClient := attack.NewUnauthHTTPClient(opts, vars)
 
 	// Step 1: Discover the OAuth metadata endpoint to find the registration endpoint.
 	registrationEndpoint, err := e.discoverRegistrationEndpoint(ctx, client, vars.BaseURL)
@@ -63,7 +66,7 @@ func (e *OAuthDCRExecutor) Execute(ctx context.Context, target string, opts atta
 		"response_types": []string{"code"},
 		"scope":          "tools:read",
 	}
-	baselineResp, err := client.POST(ctx, registrationEndpoint, nil, baselineBody)
+	baselineResp, err := unauthClient.POST(ctx, registrationEndpoint, nil, baselineBody)
 	if err != nil {
 		return nil, fmt.Errorf("DCR baseline registration failed: %w", err)
 	}
@@ -94,7 +97,7 @@ func (e *OAuthDCRExecutor) Execute(ctx context.Context, target string, opts atta
 		"response_types": []string{"code"},
 		"scope":          escalatedScope,
 	}
-	escalatedResp, err := client.POST(ctx, registrationEndpoint, nil, escalatedBody)
+	escalatedResp, err := unauthClient.POST(ctx, registrationEndpoint, nil, escalatedBody)
 	if err == nil && (escalatedResp.StatusCode == 200 || escalatedResp.StatusCode == 201) {
 		grantedScope := escalatedResp.JSONField("scope")
 		if hasAdminScope(grantedScope) {
@@ -123,7 +126,7 @@ func (e *OAuthDCRExecutor) Execute(ctx context.Context, target string, opts atta
 		"response_types": []string{"code"},
 		"scope":          "tools:read",
 	}
-	redirectResp, err := client.POST(ctx, registrationEndpoint, nil, redirectBody)
+	redirectResp, err := unauthClient.POST(ctx, registrationEndpoint, nil, redirectBody)
 	if err == nil && (redirectResp.StatusCode == 200 || redirectResp.StatusCode == 201) {
 		findings = append(findings, attack.Finding{
 			RuleID:      e.rule.ID,

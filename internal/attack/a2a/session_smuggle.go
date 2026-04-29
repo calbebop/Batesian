@@ -32,6 +32,9 @@ func NewSessionSmuggleExecutor(r attack.RuleContext) *SessionSmuggleExecutor {
 func (e *SessionSmuggleExecutor) Execute(ctx context.Context, target string, opts attack.Options) ([]attack.Finding, error) {
 	vars := attack.NewVars(target, opts.OOBListenerURL)
 	client := attack.NewHTTPClient(opts, vars)
+	// Unauth client for the cross-context GetTask probe (probe 2) — that probe
+	// tests whether history is exposed to a caller with no credentials.
+	unauthClient := attack.NewUnauthHTTPClient(opts, vars)
 
 	var findings []attack.Finding
 
@@ -105,7 +108,7 @@ func (e *SessionSmuggleExecutor) Execute(ctx context.Context, target string, opt
 			// Extract the taskId/contextId from the role-injection response.
 			taskID, contextID := extractTaskContext(resp.Body)
 			if taskID != "" {
-				leakResp, err := client.POST(ctx, ep, a2aHeaders, map[string]interface{}{
+				leakResp, err := unauthClient.POST(ctx, ep, a2aHeaders, map[string]interface{}{
 					"jsonrpc": "2.0",
 					"id":      "batesian-ctx-" + vars.RandID,
 					"method":  "GetTask",

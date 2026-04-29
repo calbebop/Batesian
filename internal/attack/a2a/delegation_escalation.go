@@ -37,7 +37,12 @@ func NewDelegationEscalationExecutor(r attack.RuleContext) *DelegationEscalation
 
 func (e *DelegationEscalationExecutor) Execute(ctx context.Context, target string, opts attack.Options) ([]attack.Finding, error) {
 	vars := attack.NewVars(target, opts.OOBListenerURL)
-	client := attack.NewHTTPClient(opts, vars)
+	// All probes are sent without credentials. The baseline checks whether the
+	// server is open to unauthenticated callers; the escalation probes then test
+	// whether privileged delegation metadata is accepted by such a caller.
+	// Using opts.Token here would make the baseline authenticated, breaking the
+	// "unauthenticated caller" premise and potentially masking the finding.
+	client := attack.NewUnauthHTTPClient(opts, vars)
 
 	endpoint := vars.BaseURL + "/"
 	a2aHeaders := map[string]string{"A2A-Version": "1.0"}

@@ -1,10 +1,76 @@
 package report_test
 
 import (
+	"bytes"
+	"strings"
 	"testing"
 
+	"github.com/calvin-mcdowell/batesian/internal/attack"
+	"github.com/calvin-mcdowell/batesian/internal/engine"
 	"github.com/calvin-mcdowell/batesian/internal/report"
+	"github.com/calvin-mcdowell/batesian/internal/rules"
 )
+
+// TestPrintScanSummary_RiskIndicatorTag verifies that a finding with
+// RiskIndicator confidence includes the "[indicator]" tag in output.
+func TestPrintScanSummary_RiskIndicatorTag(t *testing.T) {
+	var buf bytes.Buffer
+	p := report.New(&buf, false)
+
+	r := &rules.Rule{}
+	r.ID = "mcp-test-001"
+	finding := attack.Finding{
+		RuleID:     "mcp-test-001",
+		RuleName:   "Test Rule",
+		Severity:   "medium",
+		Confidence: attack.RiskIndicator,
+		Title:      "Test indicator finding",
+		TargetURL:  "https://example.com",
+	}
+
+	results := []engine.RunResult{
+		{Rule: r, Findings: []attack.Finding{finding}},
+	}
+
+	p.PrintScanSummary(results)
+	out := buf.String()
+
+	if !strings.Contains(out, "[indicator]") {
+		t.Errorf("expected [indicator] tag in output for RiskIndicator finding, got:\n%s", out)
+	}
+	if !strings.Contains(out, "Test indicator finding") {
+		t.Errorf("expected finding title in output, got:\n%s", out)
+	}
+}
+
+// TestPrintScanSummary_ConfirmedExploit verifies that a finding with
+// ConfirmedExploit confidence does NOT include the "[indicator]" tag.
+func TestPrintScanSummary_ConfirmedExploit(t *testing.T) {
+	var buf bytes.Buffer
+	p := report.New(&buf, false)
+
+	r := &rules.Rule{}
+	r.ID = "a2a-test-001"
+	finding := attack.Finding{
+		RuleID:     "a2a-test-001",
+		RuleName:   "Test Rule",
+		Severity:   "high",
+		Confidence: attack.ConfirmedExploit,
+		Title:      "Test confirmed finding",
+		TargetURL:  "https://example.com",
+	}
+
+	results := []engine.RunResult{
+		{Rule: r, Findings: []attack.Finding{finding}},
+	}
+
+	p.PrintScanSummary(results)
+	out := buf.String()
+
+	if strings.Contains(out, "[indicator]") {
+		t.Errorf("ConfirmedExploit finding should not have [indicator] tag, got:\n%s", out)
+	}
+}
 
 func TestParseFormat(t *testing.T) {
 	tests := []struct {

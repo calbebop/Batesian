@@ -22,7 +22,9 @@ func NewPromptUnauthExecutor(r attack.RuleContext) *PromptUnauthExecutor {
 
 func (e *PromptUnauthExecutor) Execute(ctx context.Context, target string, opts attack.Options) ([]attack.Finding, error) {
 	vars := attack.NewVars(target, opts.OOBListenerURL)
-	client := attack.NewHTTPClient(opts, vars)
+	// Deliberately omit the bearer token — the rule tests whether prompts are
+	// accessible WITHOUT authentication. Injecting opts.Token would mask the finding.
+	client := attack.NewUnauthHTTPClient(opts, vars)
 
 	session, err := initializeMCP(ctx, client, vars.BaseURL)
 	if err != nil {

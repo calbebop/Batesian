@@ -72,10 +72,11 @@ func (e *TaskIDORExecutor) Execute(ctx context.Context, target string, opts atta
 		return nil, nil // could not extract taskId; skip
 	}
 
-	// Step 2: Retrieve the task via tasks/get — simulate a different caller by
-	// creating a fresh HTTPClient with no auth headers.
+	// Step 2: Retrieve the task via tasks/get — simulate a different caller with
+	// no credentials. Deliberately use NewUnauthHTTPClient so opts.Token is not
+	// injected; the whole point is to confirm IDOR from an unauthenticated caller.
 	freshVars := attack.NewVars(target, opts.OOBListenerURL)
-	freshClient := attack.NewHTTPClient(opts, freshVars)
+	freshClient := attack.NewUnauthHTTPClient(opts, freshVars)
 
 	getResp, err := freshClient.POST(ctx, endpoint, a2aHeaders, map[string]interface{}{
 		"jsonrpc": "2.0",
@@ -111,8 +112,9 @@ func (e *TaskIDORExecutor) Execute(ctx context.Context, target string, opts atta
 		vars.BaseURL + "/v1/tasks",
 		vars.BaseURL + "/tasks",
 	}
+	// Step 3 uses freshClient (unauth) for the same reason as step 2.
 	for _, le := range listEndpoints {
-		listResp, err := client.GET(ctx, le, nil)
+		listResp, err := freshClient.GET(ctx, le, nil)
 		if err == nil && listResp.IsSuccess() && listResp.ContainsAny(`"tasks"`, `"contextId"`, `"history"`) {
 			findings = append(findings, attack.Finding{
 				RuleID:     e.rule.ID,

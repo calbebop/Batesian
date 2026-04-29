@@ -149,6 +149,11 @@ func TestResourcesUnauth_Vulnerable(t *testing.T) {
 	if !hasCritical {
 		t.Errorf("expected a critical finding for readable resource content, got: %v", findings)
 	}
+	for _, f := range findings {
+		if f.Confidence != attack.ConfirmedExploit {
+			t.Errorf("finding %q: want ConfirmedExploit, got %q", f.Title, f.Confidence)
+		}
+	}
 }
 
 func TestResourcesUnauth_CredentialInContent(t *testing.T) {

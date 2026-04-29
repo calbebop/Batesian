@@ -181,6 +181,8 @@ class Scanner:
             cmd += ["--token", self.token]
         if self.skip_tls:
             cmd.append("--skip-tls")
+        if self.config:
+            cmd += ["--config", self.config]
 
         try:
             proc = subprocess.run(cmd, capture_output=True, text=True, timeout=60)

@@ -64,6 +64,8 @@ class TestScannerRun:
         assert isinstance(results, Results)
         assert len(results.findings) == 1
         assert results.findings[0].rule_id == "a2a-push-ssrf-001"
+        assert results.findings[0].confidence == "confirmed"
+        assert results.findings[0].is_confirmed is True
         assert results.high_count == 1
         assert results.critical_count == 0
 
@@ -253,6 +255,15 @@ class TestScannerProbe:
             s.probe()
         cmd = mock_run.call_args[0][0]
         assert "--skip-tls" in cmd
+
+    def test_probe_passes_config(self):
+        with patch("batesian._scanner.find_binary", return_value="/fake/batesian"):
+            s = Scanner(target="https://agent.example.com", config="/tmp/batesian.yaml")
+        with patch("subprocess.run", return_value=_mock_proc(stdout=self._probe_output())) as mock_run:
+            s.probe()
+        cmd = mock_run.call_args[0][0]
+        assert "--config" in cmd
+        assert "/tmp/batesian.yaml" in cmd
 
 
 class TestScannerBuildCommand:

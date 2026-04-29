@@ -80,7 +80,7 @@ func FetchClientCredentialsToken(ctx context.Context, cfg ClientCredentialsConfi
 
 	body, readErr := io.ReadAll(io.LimitReader(resp.Body, 64*1024))
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("token endpoint returned HTTP %d: %s", resp.StatusCode, string(body))
+		return nil, fmt.Errorf("token endpoint returned HTTP %d (check credentials and scopes)", resp.StatusCode)
 	}
 	if readErr != nil {
 		return nil, fmt.Errorf("reading token response: %w", readErr)
@@ -91,7 +91,7 @@ func FetchClientCredentialsToken(ctx context.Context, cfg ClientCredentialsConfi
 		return nil, fmt.Errorf("parsing token response: %w", err)
 	}
 	if tok.AccessToken == "" {
-		return nil, fmt.Errorf("token endpoint returned empty access_token: %s", string(body))
+		return nil, fmt.Errorf("token endpoint returned HTTP 200 but no access_token in response")
 	}
 
 	return &tok, nil
@@ -168,7 +168,7 @@ func ExchangeAuthCode(ctx context.Context, cfg AuthCodeConfig) (*TokenResponse, 
 
 	body, readErr := io.ReadAll(io.LimitReader(resp.Body, 64*1024))
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("token endpoint returned HTTP %d: %s", resp.StatusCode, string(body))
+		return nil, fmt.Errorf("token endpoint returned HTTP %d (check authorization code and redirect URI)", resp.StatusCode)
 	}
 	if readErr != nil {
 		return nil, fmt.Errorf("reading auth code token response: %w", readErr)
@@ -232,6 +232,11 @@ func discoverTokenURLWithClient(ctx context.Context, issuer string, client *http
 			continue
 		}
 		if ep, ok := meta["token_endpoint"].(string); ok && ep != "" {
+			// Reject non-HTTPS token endpoints to prevent SSRF and cleartext
+			// credential transmission, even when the issuer itself is valid HTTPS.
+			if !strings.HasPrefix(ep, "https://") {
+				continue
+			}
 			return ep
 		}
 	}
