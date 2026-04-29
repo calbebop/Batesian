@@ -32,12 +32,12 @@ func TestFetchClientCredentialsToken_Success(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	tok, err := auth.FetchClientCredentialsToken(context.Background(), auth.ClientCredentialsConfig{
+	tok, err := auth.FetchClientCredentialsTokenWithClient(context.Background(), auth.ClientCredentialsConfig{
 		TokenURL:     srv.URL + "/token",
 		ClientID:     "test-client",
 		ClientSecret: "test-secret",
 		Scopes:       []string{"read", "write"},
-	})
+	}, srv.Client())
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -55,10 +55,10 @@ func TestFetchClientCredentialsToken_HTTPError(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	_, err := auth.FetchClientCredentialsToken(context.Background(), auth.ClientCredentialsConfig{
+	_, err := auth.FetchClientCredentialsTokenWithClient(context.Background(), auth.ClientCredentialsConfig{
 		TokenURL: srv.URL + "/token",
 		ClientID: "bad-client",
-	})
+	}, srv.Client())
 	if err == nil {
 		t.Fatal("expected error for 401 response, got nil")
 	}
@@ -74,12 +74,46 @@ func TestFetchClientCredentialsToken_EmptyToken(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	_, err := auth.FetchClientCredentialsToken(context.Background(), auth.ClientCredentialsConfig{
+	_, err := auth.FetchClientCredentialsTokenWithClient(context.Background(), auth.ClientCredentialsConfig{
 		TokenURL: srv.URL,
 		ClientID: "c",
-	})
+	}, srv.Client())
 	if err == nil {
 		t.Fatal("expected error for empty access_token, got nil")
+	}
+}
+
+func TestFetchClientCredentialsToken_RejectsHTTP(t *testing.T) {
+	// The public function must reject http:// token URLs to prevent cleartext
+	// transmission of client credentials.
+	_, err := auth.FetchClientCredentialsToken(context.Background(), auth.ClientCredentialsConfig{
+		TokenURL:     "http://auth.example.com/token",
+		ClientID:     "c",
+		ClientSecret: "s",
+	})
+	if err == nil {
+		t.Fatal("expected error for http:// token URL, got nil")
+	}
+	if !strings.Contains(err.Error(), "HTTPS") {
+		t.Errorf("expected HTTPS-related error, got: %v", err)
+	}
+}
+
+func TestExchangeAuthCode_RejectsHTTP(t *testing.T) {
+	// The public function must reject http:// token URLs to prevent cleartext
+	// transmission of authorization codes.
+	_, err := auth.ExchangeAuthCode(context.Background(), auth.AuthCodeConfig{
+		TokenURL:     "http://auth.example.com/token",
+		ClientID:     "c",
+		Code:         "abc",
+		RedirectURI:  "http://localhost:9876/callback",
+		PKCEVerifier: "v",
+	})
+	if err == nil {
+		t.Fatal("expected error for http:// token URL, got nil")
+	}
+	if !strings.Contains(err.Error(), "HTTPS") {
+		t.Errorf("expected HTTPS-related error, got: %v", err)
 	}
 }
 

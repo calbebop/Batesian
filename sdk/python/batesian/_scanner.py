@@ -34,6 +34,8 @@ class Scanner:
         OAuth 2.0 client secret (used with ``token_url``).
     oauth_scopes:
         OAuth 2.0 scopes to request (used with ``token_url``).
+    oauth_audience:
+        OAuth 2.0 audience identifier (Auth0/Okta-style; used with ``token_url``).
     timeout:
         Per-request HTTP timeout in seconds (default: 10).
     skip_tls:
@@ -52,6 +54,7 @@ class Scanner:
         client_id: Optional[str] = None,
         client_secret: Optional[str] = None,
         oauth_scopes: Optional[List[str]] = None,
+        oauth_audience: Optional[str] = None,
         timeout: int = 10,
         skip_tls: bool = False,
         config: Optional[str] = None,
@@ -63,6 +66,7 @@ class Scanner:
         self.client_id = client_id
         self.client_secret = client_secret
         self.oauth_scopes = oauth_scopes or []
+        self.oauth_audience = oauth_audience
         self.timeout = timeout
         self.skip_tls = skip_tls
         self.config = config
@@ -185,7 +189,12 @@ class Scanner:
             cmd += ["--config", self.config]
 
         try:
-            proc = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
+            proc = subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True,
+                timeout=max(self.timeout * 6, 60),
+            )
         except subprocess.TimeoutExpired as e:
             raise ScanError(f"Probe timed out after {e.timeout}s") from e
 
@@ -248,6 +257,8 @@ class Scanner:
             cmd += ["--client-secret", self.client_secret]
         if self.oauth_scopes:
             cmd += ["--oauth-scopes", ",".join(self.oauth_scopes)]
+        if self.oauth_audience:
+            cmd += ["--oauth-audience", self.oauth_audience]
         if self.skip_tls:
             cmd.append("--skip-tls")
         if self.config:

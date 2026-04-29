@@ -44,7 +44,21 @@ type ClientCredentialsConfig struct {
 
 // FetchClientCredentialsToken performs an OAuth 2.0 client credentials grant
 // and returns a bearer token ready to use in Authorization headers.
+//
+// The TokenURL must use HTTPS to prevent cleartext transmission of client
+// credentials. HTTP token endpoints are rejected with an explicit error.
 func FetchClientCredentialsToken(ctx context.Context, cfg ClientCredentialsConfig) (*TokenResponse, error) {
+	if !strings.HasPrefix(cfg.TokenURL, "https://") {
+		return nil, fmt.Errorf("token URL must use HTTPS to protect client credentials in transit (got: %s)", cfg.TokenURL)
+	}
+	return fetchClientCredentialsTokenWithClient(ctx, cfg, nil)
+}
+
+// fetchClientCredentialsTokenWithClient performs the actual HTTP exchange.
+// If client is nil, a default client with cfg.Timeout is constructed.
+// This indirection exists so unit tests can bypass the HTTPS-only scheme guard
+// when targeting an httptest server.
+func fetchClientCredentialsTokenWithClient(ctx context.Context, cfg ClientCredentialsConfig, client *http.Client) (*TokenResponse, error) {
 	if cfg.Timeout == 0 {
 		cfg.Timeout = 15 * time.Second
 	}
@@ -63,7 +77,10 @@ func FetchClientCredentialsToken(ctx context.Context, cfg ClientCredentialsConfi
 		form.Set("audience", cfg.Audience)
 	}
 
-	httpClient := &http.Client{Timeout: cfg.Timeout}
+	httpClient := client
+	if httpClient == nil {
+		httpClient = &http.Client{Timeout: cfg.Timeout}
+	}
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, cfg.TokenURL,
 		strings.NewReader(form.Encode()))
 	if err != nil {
@@ -138,7 +155,20 @@ type AuthCodeConfig struct {
 }
 
 // ExchangeAuthCode exchanges an authorization code (plus PKCE verifier) for tokens.
+//
+// The TokenURL must use HTTPS to prevent cleartext transmission of authorization
+// codes. HTTP token endpoints are rejected with an explicit error.
 func ExchangeAuthCode(ctx context.Context, cfg AuthCodeConfig) (*TokenResponse, error) {
+	if !strings.HasPrefix(cfg.TokenURL, "https://") {
+		return nil, fmt.Errorf("token URL must use HTTPS to protect authorization codes in transit (got: %s)", cfg.TokenURL)
+	}
+	return exchangeAuthCodeWithClient(ctx, cfg, nil)
+}
+
+// exchangeAuthCodeWithClient performs the actual HTTP exchange.
+// If client is nil, a default client with cfg.Timeout is constructed.
+// Used by unit tests to bypass the HTTPS-only scheme guard.
+func exchangeAuthCodeWithClient(ctx context.Context, cfg AuthCodeConfig, client *http.Client) (*TokenResponse, error) {
 	if cfg.Timeout == 0 {
 		cfg.Timeout = 15 * time.Second
 	}
@@ -151,7 +181,10 @@ func ExchangeAuthCode(ctx context.Context, cfg AuthCodeConfig) (*TokenResponse, 
 		"code_verifier": {cfg.PKCEVerifier},
 	}
 
-	httpClient := &http.Client{Timeout: cfg.Timeout}
+	httpClient := client
+	if httpClient == nil {
+		httpClient = &http.Client{Timeout: cfg.Timeout}
+	}
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, cfg.TokenURL,
 		strings.NewReader(form.Encode()))
 	if err != nil {

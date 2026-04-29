@@ -48,11 +48,33 @@ archives:
       - README.md
       - LICENSE
       - CONTRIBUTING.md
-      - CHANGELOG.md
 
 checksum:
   name_template: checksums.txt
   algorithm: sha256
+
+# Generate a CycloneDX SBOM for each archive so users can audit dependencies.
+# Requires syft to be available on the runner; the release workflow installs it.
+sboms:
+  - artifacts: archive
+
+# Keyless cosign signing of the checksums file. Each tagged release is signed
+# with a short-lived certificate from Sigstore's Fulcio CA, anchored by the
+# GitHub Actions OIDC token. Verifiers can confirm the binary came from this
+# repo's release pipeline. Requires cosign on the runner and id-token: write
+# permission on the release job.
+signs:
+  - cmd: cosign
+    signature: "${artifact}.sig"
+    certificate: "${artifact}.pem"
+    args:
+      - sign-blob
+      - "--yes"
+      - "--output-signature=${signature}"
+      - "--output-certificate=${certificate}"
+      - "${artifact}"
+    artifacts: checksum
+    output: true
 
 snapshot:
   version_template: "{{ incpatch .Version }}-next"

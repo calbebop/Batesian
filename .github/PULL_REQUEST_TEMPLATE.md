@@ -14,6 +14,7 @@
 
 - [ ] `go test ./...` passes
 - [ ] `go vet ./...` passes
+- [ ] `golangci-lint run` passes (CI enforces this)
 - [ ] New rules include a vulnerable test server in `testdata/` and a unit test in `internal/attack/`
 
 ## DCO

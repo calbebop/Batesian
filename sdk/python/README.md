@@ -13,8 +13,13 @@ go install github.com/calvin-mcdowell/batesian/cmd/batesian@latest
 
 ## Install
 
+> **PyPI release pending.** A `pip install batesian` package will be published shortly.
+> Until then, install directly from the repository.
+
+From Git:
+
 ```bash
-pip install batesian
+pip install "batesian @ git+https://github.com/calvin-mcdowell/batesian.git@main#subdirectory=sdk/python"
 ```
 
 Or from source (within this directory):
@@ -119,6 +124,7 @@ target before running a full scan. It defaults to the `"a2a"` protocol when
 | `client_id` | `str` | OAuth 2.0 client ID |
 | `client_secret` | `str` | OAuth 2.0 client secret |
 | `oauth_scopes` | `list[str]` | OAuth 2.0 scopes |
+| `oauth_audience` | `str` | OAuth 2.0 audience (Auth0/Okta-style) |
 | `timeout` | `int` | Per-request HTTP timeout in seconds (default: 10) |
 | `skip_tls` | `bool` | Skip TLS verification (default: False) |
 | `config` | `str` | Path to `batesian.yaml` config file |
