@@ -10,7 +10,7 @@ are welcome, whether that is a new attack rule, a bug fix, or improved documenta
   must send crafted payloads to a live endpoint and evaluate real server responses.
   Heuristic-only rules belong in a different tool.
 - All contributions require a [Developer Certificate of Origin](https://developercertificate.org/)
-  sign-off: `git commit -s`. A CLA for organizational contributions is planned.
+  sign-off: `git commit -s`. Enterprise contributor agreements will be evaluated as the project matures.
 
 ---
 
@@ -172,10 +172,11 @@ Both must pass with zero failures before committing.
 
 ```sh
 go vet ./...
+golangci-lint run
 ```
 
-Fix all reported issues. `golangci-lint` is not currently enforced in CI due to
-Go version constraints, but `go vet` is.
+Fix all reported issues. Both `go vet` and `golangci-lint` are enforced in CI
+and must pass before a PR can be merged.
 
 ### Step 6: Production-Like Validation (Best Effort)
 

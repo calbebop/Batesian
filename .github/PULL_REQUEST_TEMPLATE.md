@@ -14,7 +14,7 @@
 
 - [ ] `go test ./...` passes
 - [ ] `go vet ./...` passes
-- [ ] New rules include test fixtures in `test/fixtures/`
+- [ ] New rules include a vulnerable test server in `testdata/` and a unit test in `internal/attack/`
 
 ## DCO
 
