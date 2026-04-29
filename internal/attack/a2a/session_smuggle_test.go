@@ -12,7 +12,6 @@ import (
 	"github.com/calvin-mcdowell/batesian/internal/attack/a2a"
 )
 
-
 // TestSessionSmuggleExecutor_RoleInjectionAccepted verifies that when the
 // server accepts a SendMessage with role=2 (AGENT) and returns a valid task
 // result, at least one finding is produced.

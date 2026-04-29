@@ -83,7 +83,7 @@ type sarifArtifactLocation struct {
 
 // WriteSARIF encodes the scan results as SARIF v2.1.0 JSON to w.
 func WriteSARIF(w io.Writer, target string, results []engine.RunResult, toolVersion string) error {
-	doc := buildSARIF(target, results, toolVersion)
+	doc := buildSARIF(results, toolVersion)
 	enc := json.NewEncoder(w)
 	enc.SetIndent("", "  ")
 	if err := enc.Encode(doc); err != nil {
@@ -92,7 +92,7 @@ func WriteSARIF(w io.Writer, target string, results []engine.RunResult, toolVers
 	return nil
 }
 
-func buildSARIF(target string, results []engine.RunResult, toolVersion string) sarifLog {
+func buildSARIF(results []engine.RunResult, toolVersion string) sarifLog {
 	// De-duplicate rules from the results.
 	ruleMap := make(map[string]sarifRule)
 	var sarifResults []sarifResult
@@ -188,9 +188,10 @@ func findingToSARIF(f attackpkg.Finding) sarifResult {
 
 // severityLevel maps Batesian severity strings to SARIF level values.
 // GitHub Security tab shows:
-//   error   -> High/Critical
-//   warning -> Medium
-//   note    -> Low/Info
+//
+//	error   -> High/Critical
+//	warning -> Medium
+//	note    -> Low/Info
 func severityLevel(sev string) string {
 	switch sev {
 	case "critical", "high":
