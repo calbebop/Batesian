@@ -9,6 +9,8 @@
 
 Batesian is a red-team CLI that sends crafted adversarial payloads against A2A and MCP protocol implementations to surface vulnerabilities that observation-only tools never reach: SSRF via push-notification callbacks, OAuth scope escalation through dynamic client registration, JWS algorithm confusion, cross-session context injection, and more.
 
+![Batesian demo](docs/demo.gif)
+
 > **Authorized use only.** Only run Batesian against systems you own or have explicit written permission to test. Unauthorized use is illegal and unethical.
 
 ---
