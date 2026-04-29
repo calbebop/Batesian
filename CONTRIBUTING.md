@@ -6,9 +6,10 @@ are welcome, whether that is a new attack rule, a bug fix, or improved documenta
 ## Before You Start
 
 - Read the [project README](README.md) to understand what Batesian is and is not.
-- Batesian is an **active exploit engine**, not a passive scanner. Every rule
-  must send crafted payloads to a live endpoint and evaluate real server responses.
-  Heuristic-only rules belong in a different tool.
+- Every rule must send crafted payloads to a live endpoint and evaluate real server
+  responses (status, body, headers, timing, or out-of-band signals as defined in
+  the rule). Rules should encode concrete protocol abuse checks, not static-page
+  heuristics alone.
 - By submitting a pull request, you agree your contributions are licensed under the
   same [Apache License 2.0](LICENSE) that covers this repository. No separate
   contributor agreement is required.
