@@ -22,6 +22,17 @@ type HTTPClient struct {
 	token string // bearer token injected into every request when set
 }
 
+// NewUnauthHTTPClient creates an attack HTTP client with no bearer token.
+// Use this for requests that are intentionally unauthenticated (e.g. baseline
+// probes that test whether an endpoint can be reached without credentials).
+// Using the standard NewHTTPClient would inject opts.Token, which would
+// cause "no auth" tests to silently become authenticated when --token is set.
+func NewUnauthHTTPClient(opts Options, vars Vars) *HTTPClient {
+	unauthed := opts
+	unauthed.Token = ""
+	return NewHTTPClient(unauthed, vars)
+}
+
 // NewHTTPClient creates an attack HTTP client.
 func NewHTTPClient(opts Options, vars Vars) *HTTPClient {
 	timeout := time.Duration(opts.TimeoutSeconds) * time.Second

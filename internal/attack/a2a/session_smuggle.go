@@ -85,10 +85,11 @@ func (e *SessionSmuggleExecutor) Execute(ctx context.Context, target string, opt
 		// Vulnerable: HTTP 200 with a task/message result, no JSON-RPC error
 		if resp.IsSuccess() && !isJSONRPCError(resp.Body) && looksLikeTask(resp.Body) {
 			findings = append(findings, attack.Finding{
-				RuleID:   e.rule.ID,
-				RuleName: e.rule.Name,
-				Severity: "high",
-				Title:    "A2A server accepted message/send with role:\"agent\" from unauthenticated client",
+				RuleID:     e.rule.ID,
+				RuleName:   e.rule.Name,
+				Severity:   "high",
+				Confidence: attack.ConfirmedExploit,
+				Title:      "A2A server accepted message/send with role:\"agent\" from unauthenticated client",
 				Description: fmt.Sprintf(
 					"POST %s with message.role=\"agent\" returned HTTP %d with a task result. "+
 						"The A2A spec reserves the agent role for server-originated messages. "+
@@ -115,11 +116,12 @@ func (e *SessionSmuggleExecutor) Execute(ctx context.Context, target string, opt
 				})
 				if err == nil && leakResp.IsSuccess() && !isJSONRPCError(leakResp.Body) &&
 					leakResp.ContainsAny(`"history"`, contextID) {
-					findings = append(findings, attack.Finding{
-						RuleID:   e.rule.ID,
-						RuleName: e.rule.Name,
-						Severity: "medium",
-						Title:    "A2A task history accessible across session boundaries",
+				findings = append(findings, attack.Finding{
+					RuleID:     e.rule.ID,
+					RuleName:   e.rule.Name,
+					Severity:   "medium",
+					Confidence: attack.ConfirmedExploit,
+					Title:      "A2A task history accessible across session boundaries",
 						Description: fmt.Sprintf(
 							"Task %s (contextId %s) was retrieved with full history by a request "+
 								"that did not present the original session credentials. Any caller "+

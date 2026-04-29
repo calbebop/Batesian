@@ -86,10 +86,11 @@ func (e *ResourcesUnauthExecutor) Execute(ctx context.Context, target string, op
 	}
 
 	findings = append(findings, attack.Finding{
-		RuleID:   e.rule.ID,
-		RuleName: e.rule.Name,
-		Severity: "high",
-		Title:    fmt.Sprintf("MCP resources/list accessible without authentication (%d resources)", len(uris)),
+		RuleID:     e.rule.ID,
+		RuleName:   e.rule.Name,
+		Severity:   "high",
+		Confidence: attack.ConfirmedExploit,
+		Title:      fmt.Sprintf("MCP resources/list accessible without authentication (%d resources)", len(uris)),
 		Description: fmt.Sprintf(
 			"resources/list at %s returned %d resources without any authentication. "+
 				"An attacker can enumerate all available data sources and then read their contents "+
@@ -150,6 +151,7 @@ func (e *ResourcesUnauthExecutor) Execute(ctx context.Context, target string, op
 		RuleID:      e.rule.ID,
 		RuleName:    e.rule.Name,
 		Severity:    sev,
+		Confidence:  attack.ConfirmedExploit,
 		Title:       title,
 		Description: description,
 		Evidence:    evidenceLines,

@@ -1,6 +1,8 @@
 package rules
 
 import (
+	"os"
+	"path/filepath"
 	"testing"
 )
 
@@ -138,5 +140,37 @@ func TestFilter_Nil(t *testing.T) {
 	got := f.Apply(rules)
 	if len(got) != 1 {
 		t.Errorf("nil filter should return all rules, got %d", len(got))
+	}
+}
+
+func TestLoadFS_SkipsOversizedFile(t *testing.T) {
+	tmp := t.TempDir()
+
+	// Write a valid small rule alongside an oversized one.
+	smallYAML := []byte(validRuleYAML)
+	if err := os.WriteFile(filepath.Join(tmp, "small.yaml"), smallYAML, 0644); err != nil {
+		t.Fatalf("writing small rule: %v", err)
+	}
+
+	// Create a file larger than maxRuleFileBytes (4 MiB).
+	big := make([]byte, maxRuleFileBytes+1)
+	copy(big, []byte("id: too-big\n"))
+	// Fill the rest with spaces so it's valid but huge.
+	for i := len("id: too-big\n"); i < len(big); i++ {
+		big[i] = ' '
+	}
+	if err := os.WriteFile(filepath.Join(tmp, "toobig.yaml"), big, 0644); err != nil {
+		t.Fatalf("writing oversized rule: %v", err)
+	}
+
+	loaded, warns, err := loadFS(os.DirFS(tmp), ".")
+	if err != nil {
+		t.Fatalf("unexpected load error: %v", err)
+	}
+	if len(loaded) != 1 {
+		t.Errorf("expected 1 loaded rule (small.yaml), got %d", len(loaded))
+	}
+	if len(warns) != 1 {
+		t.Errorf("expected 1 warning for oversized file, got %d", len(warns))
 	}
 }

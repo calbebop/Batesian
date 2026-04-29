@@ -37,7 +37,10 @@ func NewExtCardExecutor(r attack.RuleContext) *ExtCardExecutor {
 
 func (e *ExtCardExecutor) Execute(ctx context.Context, target string, opts attack.Options) ([]attack.Finding, error) {
 	vars := attack.NewVars(target, opts.OOBListenerURL)
-	client := attack.NewHTTPClient(opts, vars)
+	// All probes test whether the endpoint is accessible without (or with an invalid)
+	// token, so we always use an unauthClient. The fabricated-token probes inject the
+	// bad token explicitly via the per-request header map rather than via opts.Token.
+	unauthClient := attack.NewUnauthHTTPClient(opts, vars)
 
 	var findings []attack.Finding
 
@@ -45,12 +48,12 @@ func (e *ExtCardExecutor) Execute(ctx context.Context, target string, opts attac
 	// Both / and /v1/message:send are tried since the endpoint varies by binding type.
 	jsonrpcEndpoints := []string{vars.BaseURL + "/", vars.BaseURL + "/v1/message:send"}
 	for _, ep := range jsonrpcEndpoints {
-		// Probe 1: No auth
-		f := e.probeJSONRPC(ctx, client, ep, "", vars.RandID)
+		// Probe 1: No auth — must use unauthClient so --token is not injected.
+		f := e.probeJSONRPC(ctx, unauthClient, ep, "", vars.RandID)
 		findings = append(findings, f...)
 
-		// Probe 2: Fabricated invalid token
-		f = e.probeJSONRPC(ctx, client, ep, "batesian-invalid-"+vars.RandID, vars.RandID)
+		// Probe 2: Fabricated invalid token (explicitly set via header, not opts.Token).
+		f = e.probeJSONRPC(ctx, unauthClient, ep, "batesian-invalid-"+vars.RandID, vars.RandID)
 		findings = append(findings, f...)
 
 		if len(findings) > 0 {
@@ -61,13 +64,14 @@ func (e *ExtCardExecutor) Execute(ctx context.Context, target string, opts attac
 	// HTTP GET probe — legacy path (a2a-sdk < 1.0.0, a2a-samples reference impl).
 	extURL := vars.BaseURL + extCardHTTPPath
 
-	// Probe 3: No auth via HTTP GET
-	unauthResp, err := client.GET(ctx, extURL, nil)
+	// Probe 3: No auth via HTTP GET — must use unauthClient.
+	unauthResp, err := unauthClient.GET(ctx, extURL, nil)
 	if err == nil && unauthResp.IsSuccess() {
 		findings = append(findings, attack.Finding{
 			RuleID:      e.rule.ID,
 			RuleName:    e.rule.Name,
 			Severity:    "high",
+			Confidence:  attack.ConfirmedExploit,
 			Title:       "Extended Agent Card (HTTP GET) accessible without authentication",
 			Description: fmt.Sprintf("GET %s returned HTTP %d without any Authorization header.", extURL, unauthResp.StatusCode),
 			Evidence:    fmt.Sprintf("HTTP %d from %s (no auth)\n%s", unauthResp.StatusCode, extURL, snippet(unauthResp.Body, 300)),
@@ -76,9 +80,9 @@ func (e *ExtCardExecutor) Execute(ctx context.Context, target string, opts attac
 		})
 	}
 
-	// Probe 4: Fabricated invalid token via HTTP GET
+	// Probe 4: Fabricated invalid token via HTTP GET (explicit header overrides the unauth client's no-token default).
 	invalidToken := "batesian-invalid-" + vars.RandID
-	invalidHTTPResp, err := client.GET(ctx, extURL, map[string]string{
+	invalidHTTPResp, err := unauthClient.GET(ctx, extURL, map[string]string{
 		"Authorization": "Bearer " + invalidToken,
 	})
 	if err == nil && invalidHTTPResp.IsSuccess() {
@@ -86,6 +90,7 @@ func (e *ExtCardExecutor) Execute(ctx context.Context, target string, opts attac
 			RuleID:      e.rule.ID,
 			RuleName:    e.rule.Name,
 			Severity:    "critical",
+			Confidence:  attack.ConfirmedExploit,
 			Title:       "Extended Agent Card (HTTP GET) returned HTTP 200 with fabricated Bearer token",
 			Description: fmt.Sprintf("GET %s returned HTTP %d with invalid token %q — auth is not enforced.", extURL, invalidHTTPResp.StatusCode, invalidToken),
 			Evidence:    fmt.Sprintf("HTTP %d from %s\nAuthorization: Bearer %s\n%s", invalidHTTPResp.StatusCode, extURL, invalidToken, snippet(invalidHTTPResp.Body, 300)),
@@ -130,10 +135,11 @@ func (e *ExtCardExecutor) probeJSONRPC(ctx context.Context, client *attack.HTTPC
 	var findings []attack.Finding
 	if token == "" {
 		findings = append(findings, attack.Finding{
-			RuleID:   e.rule.ID,
-			RuleName: e.rule.Name,
-			Severity: "high",
-			Title:    "Extended Agent Card (JSON-RPC) accessible without authentication",
+			RuleID:     e.rule.ID,
+			RuleName:   e.rule.Name,
+			Severity:   "high",
+			Confidence: attack.ConfirmedExploit,
+			Title:      "Extended Agent Card (JSON-RPC) accessible without authentication",
 			Description: fmt.Sprintf(
 				"POST %s with method agent/authenticatedExtendedCard returned HTTP %d without any "+
 					"Authorization header. The extended card discloses privileged capability listings "+
@@ -144,10 +150,11 @@ func (e *ExtCardExecutor) probeJSONRPC(ctx context.Context, client *attack.HTTPC
 		})
 	} else {
 		findings = append(findings, attack.Finding{
-			RuleID:   e.rule.ID,
-			RuleName: e.rule.Name,
-			Severity: "critical",
-			Title:    "Extended Agent Card (JSON-RPC) returned HTTP 200 with fabricated Bearer token",
+			RuleID:     e.rule.ID,
+			RuleName:   e.rule.Name,
+			Severity:   "critical",
+			Confidence: attack.ConfirmedExploit,
+			Title:      "Extended Agent Card (JSON-RPC) returned HTTP 200 with fabricated Bearer token",
 			Description: fmt.Sprintf(
 				"POST %s with method agent/authenticatedExtendedCard returned HTTP %d with invalid "+
 					"token %q — authentication is not enforced at the application layer.", endpoint, resp.StatusCode, token),

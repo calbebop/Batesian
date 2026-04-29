@@ -8,6 +8,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/calvin-mcdowell/batesian/internal/attack"
 	"github.com/calvin-mcdowell/batesian/internal/attack/a2a"
 )
 
@@ -67,6 +68,15 @@ func TestJWSAlgConfExecutor_AlgNone(t *testing.T) {
 	if !hasCritical {
 		t.Errorf("expected a critical finding for alg:none, got: %+v", findings)
 	}
+	rc := testRuleCtx()
+	for _, f := range findings {
+		if f.RuleID != rc.ID {
+			t.Errorf("finding RuleID = %q, want %q", f.RuleID, rc.ID)
+		}
+		if f.Confidence == "" {
+			t.Errorf("finding missing Confidence field (RuleID=%s, Title=%q)", f.RuleID, f.Title)
+		}
+	}
 }
 
 // TestJWSAlgConfExecutor_NoSignatures verifies that a card advertising
@@ -109,6 +119,14 @@ func TestJWSAlgConfExecutor_NoSignatures(t *testing.T) {
 	}
 	if !hasInfo {
 		t.Errorf("expected an info finding for missing JWS signatures, got: %+v", findings)
+	}
+	for _, f := range findings {
+		if f.Confidence == "" {
+			t.Errorf("finding missing Confidence field (Title=%q)", f.Title)
+		}
+		if f.Confidence != attack.ConfirmedExploit && f.Confidence != attack.RiskIndicator {
+			t.Errorf("unexpected Confidence %q for finding %q", f.Confidence, f.Title)
+		}
 	}
 }
 

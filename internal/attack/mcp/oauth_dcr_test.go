@@ -138,6 +138,18 @@ func TestOAuthDCR_ScopeEscalation(t *testing.T) {
 	if !hasCritical {
 		t.Errorf("expected critical finding for scope escalation, findings: %v", findings)
 	}
+	rc := oauthRC()
+	for _, f := range findings {
+		if f.RuleID != rc.ID {
+			t.Errorf("finding RuleID = %q, want %q", f.RuleID, rc.ID)
+		}
+		if f.Confidence == "" {
+			t.Errorf("finding %q is missing Confidence field", f.Title)
+		}
+		if f.Confidence != attack.ConfirmedExploit {
+			t.Errorf("expected ConfirmedExploit confidence for DCR finding %q, got %q", f.Title, f.Confidence)
+		}
+	}
 }
 
 func TestOAuthDCR_UnauthRegistration(t *testing.T) {

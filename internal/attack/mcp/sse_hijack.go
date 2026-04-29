@@ -36,7 +36,9 @@ func NewSSEHijackExecutor(r attack.RuleContext) *SSEHijackExecutor {
 
 func (e *SSEHijackExecutor) Execute(ctx context.Context, target string, opts attack.Options) ([]attack.Finding, error) {
 	vars := attack.NewVars(target, opts.OOBListenerURL)
-	client := attack.NewHTTPClient(opts, vars)
+	// Deliberately omit the bearer token: the whole point of this check is to
+	// determine whether an SSE connection can be established WITHOUT credentials.
+	client := attack.NewUnauthHTTPClient(opts, vars)
 
 	var findings []attack.Finding
 	seen := map[string]bool{}

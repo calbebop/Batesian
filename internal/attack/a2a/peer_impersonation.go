@@ -39,7 +39,10 @@ func NewPeerImpersonationExecutor(r attack.RuleContext) *PeerImpersonationExecut
 
 func (e *PeerImpersonationExecutor) Execute(ctx context.Context, target string, opts attack.Options) ([]attack.Finding, error) {
 	vars := attack.NewVars(target, opts.OOBListenerURL)
+	// Two clients: one with any configured token for card fetching, and one
+	// explicitly without for the unauthenticated baseline probe (step 4).
 	client := attack.NewHTTPClient(opts, vars)
+	unauthClient := attack.NewUnauthHTTPClient(opts, vars)
 
 	endpoint := vars.BaseURL + "/"
 
@@ -84,8 +87,8 @@ func (e *PeerImpersonationExecutor) Execute(ctx context.Context, target string, 
 		return nil, nil
 	}
 
-	// Step 4: Unauthenticated baseline.
-	baselineResp, err := client.POST(ctx, endpoint, map[string]string{"A2A-Version": "1.0"}, msgBody)
+	// Step 4: Unauthenticated baseline — use unauthClient so opts.Token is not injected.
+	baselineResp, err := unauthClient.POST(ctx, endpoint, map[string]string{"A2A-Version": "1.0"}, msgBody)
 	if err != nil {
 		return nil, nil
 	}

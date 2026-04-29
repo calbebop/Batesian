@@ -136,6 +136,7 @@ func (e *PushSSRFExecutor) Execute(ctx context.Context, target string, opts atta
 				RuleID:      e.rule.ID,
 				RuleName:    e.rule.Name,
 				Severity:    "high",
+				Confidence:  attack.ConfirmedExploit,
 				Title:       "A2A server made outbound request to attacker-controlled push notification URL",
 				Description: fmt.Sprintf("The A2A server at %s accepted a task registration with an attacker-controlled "+
 					"pushNotificationConfig.url and subsequently sent an outbound HTTP request to %s. "+
@@ -151,10 +152,11 @@ func (e *PushSSRFExecutor) Execute(ctx context.Context, target string, opts atta
 			// fires on task completion which hasn't happened yet.
 			// Report as info: task accepted with push config but no callback confirmed.
 			findings = append(findings, attack.Finding{
-				RuleID:   e.rule.ID,
-				RuleName: e.rule.Name,
-				Severity: "info",
-				Title:    "A2A server accepted push notification config but no callback observed",
+				RuleID:     e.rule.ID,
+				RuleName:   e.rule.Name,
+				Severity:   "info",
+				Confidence: attack.RiskIndicator,
+				Title:      "A2A server accepted push notification config but no callback observed",
 				Description: fmt.Sprintf("The A2A server accepted a task with pushNotificationConfig.url=%q but no inbound "+
 					"callback was received within the timeout. This may be a false negative if the callback fires on task "+
 					"completion (which did not occur) or if the server cannot reach this host. Retry with --oob-url "+
@@ -168,10 +170,11 @@ func (e *PushSSRFExecutor) Execute(ctx context.Context, target string, opts atta
 	} else {
 		// Using external OOB — report task accepted, user must check their OOB server.
 		findings = append(findings, attack.Finding{
-			RuleID:   e.rule.ID,
-			RuleName: e.rule.Name,
-			Severity: "info",
-			Title:    "A2A push notification task accepted with attacker-controlled callback URL",
+			RuleID:     e.rule.ID,
+			RuleName:   e.rule.Name,
+			Severity:   "info",
+			Confidence: attack.RiskIndicator,
+			Title:      "A2A push notification task accepted with attacker-controlled callback URL",
 			Description: fmt.Sprintf("Task submitted with pushNotificationConfig.url=%q (binding: %s). "+
 				"Check your OOB server at %s for inbound callbacks to confirm SSRF.",
 				callbackURL, acceptedBinding, opts.OOBListenerURL),

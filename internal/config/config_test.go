@@ -104,6 +104,49 @@ func TestLoad_MalformedYAML(t *testing.T) {
 	}
 }
 
+func TestLoad_InvalidProtocol(t *testing.T) {
+	tmp := t.TempDir()
+	cfgPath := filepath.Join(tmp, "batesian.yaml")
+	os.WriteFile(cfgPath, []byte("protocol: grpc\n"), 0644)
+	_, err := config.Load(cfgPath)
+	if err == nil {
+		t.Error("expected error for invalid protocol, got nil")
+	}
+}
+
+func TestLoad_InvalidOutput(t *testing.T) {
+	tmp := t.TempDir()
+	cfgPath := filepath.Join(tmp, "batesian.yaml")
+	os.WriteFile(cfgPath, []byte("output: markdown\n"), 0644)
+	_, err := config.Load(cfgPath)
+	if err == nil {
+		t.Error("expected error for invalid output format, got nil")
+	}
+}
+
+func TestLoad_InvalidSeverity(t *testing.T) {
+	tmp := t.TempDir()
+	cfgPath := filepath.Join(tmp, "batesian.yaml")
+	os.WriteFile(cfgPath, []byte("severities:\n  - high\n  - urgent\n"), 0644)
+	_, err := config.Load(cfgPath)
+	if err == nil {
+		t.Error("expected error for invalid severity level, got nil")
+	}
+}
+
+func TestLoad_EmptyProtocolAndOutput_AreValid(t *testing.T) {
+	tmp := t.TempDir()
+	cfgPath := filepath.Join(tmp, "batesian.yaml")
+	os.WriteFile(cfgPath, []byte("target: https://example.com\n"), 0644)
+	cfg, err := config.Load(cfgPath)
+	if err != nil {
+		t.Fatalf("empty protocol/output should be valid, got: %v", err)
+	}
+	if cfg.Protocol != "" || cfg.Output != "" {
+		t.Error("expected empty protocol and output defaults")
+	}
+}
+
 func TestExample_IsValidYAML(t *testing.T) {
 	tmp := t.TempDir()
 	cfgPath := filepath.Join(tmp, "batesian.yaml")

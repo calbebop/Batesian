@@ -89,10 +89,11 @@ func (e *TaskIDORExecutor) Execute(ctx context.Context, target string, opts atta
 	if err == nil && getResp.IsSuccess() && !isJSONRPCError(getResp.Body) &&
 		getResp.ContainsAny(`"history"`, `"contextId"`, taskID, contextID) {
 		findings = append(findings, attack.Finding{
-			RuleID:   e.rule.ID,
-			RuleName: e.rule.Name,
-			Severity: "high",
-			Title:    "A2A task history accessible without authenticating as task owner (IDOR)",
+			RuleID:     e.rule.ID,
+			RuleName:   e.rule.Name,
+			Severity:   "high",
+			Confidence: attack.ConfirmedExploit,
+			Title:      "A2A task history accessible without authenticating as task owner (IDOR)",
 			Description: fmt.Sprintf(
 				"tasks/get for task %s (contextId %s) returned full task history in a "+
 					"connection that did not present the original session credentials. Any caller "+
@@ -114,10 +115,11 @@ func (e *TaskIDORExecutor) Execute(ctx context.Context, target string, opts atta
 		listResp, err := client.GET(ctx, le, nil)
 		if err == nil && listResp.IsSuccess() && listResp.ContainsAny(`"tasks"`, `"contextId"`, `"history"`) {
 			findings = append(findings, attack.Finding{
-				RuleID:   e.rule.ID,
-				RuleName: e.rule.Name,
-				Severity: "critical",
-				Title:    "A2A server exposes tasks/list without authentication — server-wide task disclosure",
+				RuleID:     e.rule.ID,
+				RuleName:   e.rule.Name,
+				Severity:   "critical",
+				Confidence: attack.ConfirmedExploit,
+				Title:      "A2A server exposes tasks/list without authentication — server-wide task disclosure",
 				Description: fmt.Sprintf(
 					"GET %s returned a list of tasks without authentication. This exposes all task "+
 						"IDs, context IDs, and potentially conversation history for every session on "+

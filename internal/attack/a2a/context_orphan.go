@@ -122,9 +122,10 @@ func (e *ContextOrphanExecutor) Execute(ctx context.Context, target string, opts
 	// If the new task was assigned to the same contextId, context injection is confirmed.
 	if contextID2 != "" && contextID2 == contextID1 {
 		findings = append(findings, attack.Finding{
-			RuleID:   e.rule.ID,
-			RuleName: e.rule.Name,
-			Severity: "high",
+			RuleID:     e.rule.ID,
+			RuleName:   e.rule.Name,
+			Severity:   "high",
+			Confidence: attack.ConfirmedExploit,
 			Title: fmt.Sprintf(
 				"A2A server accepted contextId injection — new session joined context %s owned by a different session",
 				contextID1),
@@ -153,9 +154,10 @@ func (e *ContextOrphanExecutor) Execute(ctx context.Context, target string, opts
 		if err == nil && getResp.IsSuccess() && !isJSONRPCError(getResp.Body) &&
 			getResp.ContainsAny(probeMarker, taskID1) {
 			findings = append(findings, attack.Finding{
-				RuleID:   e.rule.ID,
-				RuleName: e.rule.Name,
-				Severity: "critical",
+				RuleID:     e.rule.ID,
+				RuleName:   e.rule.Name,
+				Severity:   "critical",
+				Confidence: attack.ConfirmedExploit,
 				Title: fmt.Sprintf(
 					"A2A context injection also exposes original session history (task %s messages visible in task %s)",
 					taskID1, taskID2),
