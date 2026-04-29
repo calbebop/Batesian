@@ -168,7 +168,7 @@ See [`sdk/python/`](sdk/python/) for installation, full API reference, and CI in
 
 ## Status
 
-Early development. Active construction. Star or watch this repo to follow progress.
+The rule engine and all 34 bundled rules are production-ready. New rules and protocol coverage are in active development. Star or watch to follow progress.
 
 ## Contributing
 
