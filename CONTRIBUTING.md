@@ -23,11 +23,18 @@ Every Batesian rule is composed of four parts that must all be present before
 a rule is considered complete:
 
 ```
-rules/<protocol>/<rule-id>.yaml          YAML descriptor
-internal/attack/<protocol>/<name>.go     Go executor
+rules/<protocol>/<rule-id>.yaml            YAML descriptor
+internal/attack/<protocol>/<name>.go       Go executor
 internal/attack/<protocol>/<name>_test.go  Unit tests
-testdata/<name>_server.py                Vulnerable test server
+testdata/...                               Vulnerable test server (Python)
 ```
+
+Test servers in `testdata/` are typically **shared**: a single Python file may
+host the routes for several related rules (for example,
+`testdata/a2a_remaining_rules_server.py` covers three A2A rules). Add a new
+server only when no existing one is a natural fit. See
+[`testdata/README.md`](testdata/README.md) for the current registry, port
+allocations, and dependencies.
 
 ### Naming Conventions
 
@@ -133,14 +140,23 @@ Run tests: `go test ./internal/attack/...`
 
 ### Step 2: Testdata Server
 
-Write a Python server in `testdata/<name>_server.py` that deliberately
-implements the vulnerability. It must:
+Add the routes that exercise the vulnerability to a Python server in
+`testdata/`. Prefer extending an existing server documented in
+[`testdata/README.md`](testdata/README.md) when the protocol and theme match;
+add a new file only if no existing server is a natural host. Either way:
 
-- Start with `uvicorn` on a documented port (increment from the last used port).
+- Bind to a documented port. New Starlette/uvicorn servers should pick the next
+  free port in the `77xx` range, FastMCP servers in `87xx`, and "new style"
+  servers in `31xx` (see `testdata/README.md`).
 - Print startup confirmation lines so the caller can wait for readiness.
-- Implement only the minimum routes needed to trigger the rule.
-- Be self-contained with no external dependencies beyond `starlette` and `uvicorn`.
-- Include a module docstring listing which rule IDs it covers and how to run it.
+- Implement only the minimum routes needed to trigger the rule(s).
+- Stay within the project test-server dependency set:
+  `pip install starlette uvicorn httpx mcp`. Do not introduce new third-party
+  packages without updating `testdata/README.md`.
+- Include a module docstring listing every rule ID the server covers and how
+  to run it.
+- Update `testdata/README.md`'s registry table whenever you add a server,
+  add a new rule to an existing server, or change a port.
 
 ### Step 3: Live Validation
 
