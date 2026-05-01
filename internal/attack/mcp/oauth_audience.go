@@ -71,8 +71,8 @@ func (e *OAuthAudienceExecutor) Execute(ctx context.Context, target string, opts
 
 	expected := strings.TrimSpace(opts.AudienceClaim)
 	if expected == "" {
-		discovered, err := discoverExpectedAudience(ctx, client, vars.BaseURL)
-		if err != nil || discovered == "" {
+		discovered := discoverExpectedAudience(ctx, client, vars.BaseURL)
+		if discovered == "" {
 			// Precondition not met: no operator input and no discoverable
 			// resource metadata. Skip silently rather than emit a misleading
 			// finding. Operators who want this rule to run should pass
@@ -204,19 +204,16 @@ func hasUpper(s string) bool {
 //  2. GET that URL and read `resource`.
 //  3. Fall back to GET {base}/.well-known/oauth-protected-resource.
 //
-// Returns the resource URI on success, or an empty string with no error if
-// nothing usable was found (caller treats that as "skip").
-func discoverExpectedAudience(ctx context.Context, client *attack.HTTPClient, baseURL string) (string, error) {
+// Returns the resource URI on success, or an empty string if nothing
+// usable was found (caller treats that as "skip").
+func discoverExpectedAudience(ctx context.Context, client *attack.HTTPClient, baseURL string) string {
 	if metaURL := probeWWWAuthenticateResourceMetadata(ctx, client, baseURL); metaURL != "" {
 		if resource := fetchResourceFromMetadata(ctx, client, metaURL); resource != "" {
-			return resource, nil
+			return resource
 		}
 	}
 	wellKnown := baseURL + "/.well-known/oauth-protected-resource"
-	if resource := fetchResourceFromMetadata(ctx, client, wellKnown); resource != "" {
-		return resource, nil
-	}
-	return "", nil
+	return fetchResourceFromMetadata(ctx, client, wellKnown)
 }
 
 // probeWWWAuthenticateResourceMetadata sends an unauth initialize request to
