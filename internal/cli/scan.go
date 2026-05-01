@@ -66,6 +66,10 @@ func init() {
 	scanCmd.Flags().String("auth-url", "", "OAuth 2.0 authorization endpoint URL (enables PKCE flow)")
 	scanCmd.Flags().Int("redirect-port", 9876, "Local TCP port for the OAuth callback listener (PKCE flow)")
 	scanCmd.Flags().Bool("no-browser", false, "Do not auto-open the browser for PKCE consent (print URL only)")
+	// Rule-scoped flag for mcp-oauth-audience-002: expected JWT `aud` claim of the
+	// target MCP resource server. Distinct from --oauth-audience, which is a
+	// request-time parameter used during AS token acquisition (Auth0/Okta dialect).
+	scanCmd.Flags().String("audience-claim", "", "Expected JWT aud value for the target MCP server (used by mcp-oauth-audience-002)")
 	rootCmd.AddCommand(scanCmd)
 }
 
@@ -89,6 +93,7 @@ func runScan(cmd *cobra.Command, args []string) error {
 	timeoutSecs, _ := cmd.Flags().GetInt("timeout")
 	skipTLS, _ := cmd.Flags().GetBool("skip-tls")
 	oobURL, _ := cmd.Flags().GetString("oob-url")
+	audienceClaim, _ := cmd.Flags().GetString("audience-claim")
 
 	if target == "" {
 		target = cfg.Target
@@ -122,6 +127,9 @@ func runScan(cmd *cobra.Command, args []string) error {
 	}
 	if oobURL == "" {
 		oobURL = cfg.OOBURL
+	}
+	if audienceClaim == "" {
+		audienceClaim = cfg.AudienceClaim
 	}
 
 	if target == "" {
@@ -202,6 +210,7 @@ func runScan(cmd *cobra.Command, args []string) error {
 		TimeoutSeconds: timeoutSecs,
 		SkipTLS:        skipTLS,
 		Verbose:        verbose,
+		AudienceClaim:  audienceClaim,
 	}
 
 	eng := engine.New(opts)

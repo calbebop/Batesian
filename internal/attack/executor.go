@@ -41,6 +41,13 @@ type Options struct {
 
 	// Verbose enables debug logging.
 	Verbose bool
+
+	// AudienceClaim is the operator-supplied expected JWT `aud` value for the
+	// target MCP resource server. Currently consumed only by mcp-oauth-audience-002,
+	// which derives canary-mismatch probes (substring/case/array-shape) from this
+	// value. When empty, that rule attempts RFC 9728 protected-resource-metadata
+	// auto-discovery and otherwise reports Inconclusive.
+	AudienceClaim string
 }
 
 // Confidence describes how certain the finding is.
