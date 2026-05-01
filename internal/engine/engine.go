@@ -121,6 +121,8 @@ func resolveExecutor(r *rules.Rule) (attackpkg.Executor, error) {
 		return mcpattack.NewSamplingInjectExecutor(rc), nil
 	case "mcp-token-replay":
 		return mcpattack.NewTokenReplayExecutor(rc), nil
+	case "mcp-oauth-audience":
+		return mcpattack.NewOAuthAudienceExecutor(rc), nil
 	case "a2a-json-rpc-fuzz":
 		return a2aattack.NewJSONRPCFuzzExecutor(rc), nil
 	case "a2a-wellknown-hostinject":

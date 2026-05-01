@@ -37,7 +37,7 @@ evidence and actionable remediation, not a one-time manual poke at the endpoint.
 
 ## What Batesian tests
 
-Batesian ships **18 A2A rules** and **16 MCP rules**, covering SSRF, OAuth abuse, JWS algorithm
+Batesian ships **18 A2A rules** and **17 MCP rules**, covering SSRF, OAuth abuse, JWS algorithm
 confusion, prompt injection, protocol downgrade, TLS enforcement, and more.
 
 - [A2A rule catalog](docs/rules-a2a.md) — Agent-to-Agent protocol attacks

@@ -56,6 +56,12 @@ type Config struct {
 
 	// OOBURL is the URL of a pre-configured external OOB listener.
 	OOBURL string `yaml:"oob_url"`
+
+	// AudienceClaim is the expected JWT `aud` value for the target MCP resource
+	// server. Used by mcp-oauth-audience-002 to construct canary-mismatch probes.
+	// When empty, batesian falls back to RFC 9728 protected-resource-metadata
+	// discovery before skipping the rule with Inconclusive.
+	AudienceClaim string `yaml:"audience_claim"`
 }
 
 // Load reads a config file from path. If path is empty, it searches
@@ -183,5 +189,12 @@ func Example() string {
 
 # External OOB listener URL (overrides oob: true).
 # oob_url: https://your-collaborator.net/token
+
+# Expected JWT 'aud' value for the target MCP resource server.
+# Consumed by mcp-oauth-audience-002 to derive canary-mismatch probes
+# (substring trap, case-canonicalization trap, array-shape trap).
+# When unset, batesian attempts RFC 9728 protected-resource-metadata
+# discovery; if that also fails, the rule reports Inconclusive.
+# audience_claim: https://api.example.com/mcp
 `
 }

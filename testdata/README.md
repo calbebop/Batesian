@@ -31,11 +31,13 @@ pip install starlette uvicorn httpx mcp
 | `mcp_new_rules_server.py` | 3100 | `mcp-init-downgrade-001`, `mcp-cors-wildcard-001`, `mcp-prompt-unauth-001` |
 | `mcp_flood_namespace_sse_server.py` | 7781 | `mcp-context-flood-001`, `mcp-tool-namespace-001`, `mcp-sse-hijack-001` |
 | `mcp_injection_server.py` | 7783 | `mcp-init-instructions-inject-001`, `mcp-injection-params-001`, `mcp-ratelimit-absent-001`, `mcp-homoglyph-tool-001` |
+| `mcp_oauth_audience_server.py` | 7785 | `mcp-oauth-audience-002` |
 
 **Coverage.** All **18** bundled A2A rules (`a2a-*-001`) appear in the table
-above. Of the **16** bundled MCP rules (`mcp-*-001`), **13** are exercised by
-the Python servers listed here. The other **3** have no standalone Python
-server yet; they are validated only with `net/http/httptest` in Go unit tests:
+above. Of the **17** bundled MCP rules (16 `mcp-*-001` plus
+`mcp-oauth-audience-002`), **14** are exercised by the Python servers listed
+here. The other **3** have no standalone Python server yet; they are validated
+only with `net/http/httptest` in Go unit tests:
 
 | Rule ID | Go tests |
 |---------|----------|

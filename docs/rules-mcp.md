@@ -1,6 +1,6 @@
 # MCP Attack Rules
 
-Batesian ships **16 rules** targeting the [Model Context Protocol (MCP)](https://modelcontextprotocol.io/).
+Batesian ships **17 rules** targeting the [Model Context Protocol (MCP)](https://modelcontextprotocol.io/).
 All rules are active -- they send crafted payloads and evaluate the server's response rather than
 passively observing what the endpoint exposes.
 
@@ -11,6 +11,7 @@ passively observing what the endpoint exposes.
 | `mcp-resources-unauth-001` | [Unauthenticated Resource Read](#mcp-resources-unauth-001) | Critical | CWE-862 |
 | `mcp-sampling-inject-001` | [Sampling Capability Injection Surface](#mcp-sampling-inject-001) | High | CWE-20 |
 | `mcp-token-replay-001` | [OAuth Token Audience Validation Bypass](#mcp-token-replay-001) | High | CWE-294 |
+| `mcp-oauth-audience-002` | [OAuth Audience Matching Bug Probes](#mcp-oauth-audience-002) | High | CWE-863 |
 | `mcp-init-downgrade-001` | [Protocol Version Downgrade Auth Bypass](#mcp-init-downgrade-001) | High | CWE-757 |
 | `mcp-cors-wildcard-001` | [CORS Wildcard Origin with Credentials](#mcp-cors-wildcard-001) | High | CWE-942 |
 | `mcp-prompt-unauth-001` | [Prompt Templates Without Authentication](#mcp-prompt-unauth-001) | Medium | CWE-862 |
@@ -76,6 +77,26 @@ vulnerable server forwards the injected content to the downstream LLM without sa
 Crafts a Bearer JWT with a mismatched `aud` claim (targeting a different service), a future
 `nbf`, and an expired `exp`, then submits it to the MCP endpoint. A vulnerable server accepts
 the token without validating audience, time bounds, or signature.
+
+---
+
+### mcp-oauth-audience-002
+
+**OAuth Audience Matching Bug Probes** | Severity: High | CWE-863
+
+Probes whether the server's `aud` matching logic is robust to common implementation bugs
+(`Contains` / `HasPrefix` substring matching, case folding, URL canonicalization, array-shape
+branch skip) once the operator's expected audience value is known. Three forged HS256 JWT
+canaries are derived from the value supplied via `--audience-claim` (or auto-discovered via
+RFC 9728 protected resource metadata) and submitted to the first responsive MCP endpoint.
+Per-endpoint outcomes are coalesced into a single rule-level finding.
+
+**Honest scope.** Because probes are forged HS256 self-signed tokens, acceptance indicates a
+compound failure of signature validation **and** audience matching. Catching servers that
+validate signatures correctly but still mis-handle `aud` (the Parse CVE-2026-30863 /
+RFC 7523-bis class) requires a real validly-signed cross-resource token and is tracked as a
+follow-up. If `mcp-token-replay-001` is already firing on this target, fix those findings
+first; this rule's results will likely be subsumed.
 
 ---
 
